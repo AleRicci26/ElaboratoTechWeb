@@ -157,6 +157,8 @@ class DatabaseAPI {
 
         $totalPrice = $stmt->get_result()->fetch_all(MYSQLI_ASSOC)[0]['Total'];
 
+        $stmt->close();
+
         // Check budget utente
         $stmt = $this->db->prepare("SELECT Budget FROM users WHERE UserId = ?");
         $stmt->bind_param('s', $_SESSION['user_id'],);
@@ -168,6 +170,8 @@ class DatabaseAPI {
             return "notEnoughBudget";
         }
 
+        $stmt->close();
+
         // Acquisto
         $remainingBudget = $userBudget - $totalPrice;
 
@@ -175,6 +179,7 @@ class DatabaseAPI {
         $stmt = $this->db->prepare("UPDATE users SET Budget = ? WHERE UserId = ?");
         $stmt->bind_param('ss', $remainingBudget, $_SESSION['user_id'],);
         $stmt->execute();
+        $stmt->close();
 
         // Creazione ordine
         $orderStatus = 1;
@@ -185,6 +190,8 @@ class DatabaseAPI {
 
         // Creazione dettaglio ordine
         $orderId = $stmt->insert_id;
+
+        $stmt->close();
 
         for ($i = 0; $i < count($cartProducts); $i++) {
             $currentProduct = $cartProducts[$i];
@@ -198,16 +205,18 @@ class DatabaseAPI {
             $stmt = $this->db->prepare("INSERT INTO order_details (`Order`, `RowNum`, `Product`, `Quantity`, `TotalPrice`) VALUES (?,?,?,?,?)");
             $stmt->bind_param('sssss', $orderId, $rowNum, $currentProduct["ProductId"], $quantity, $totalPrice);
             $stmt->execute();
+            $stmt->close();
         }
 
         // Pulizia del carrello
         $stmt = $this->db->prepare("DELETE FROM carts WHERE User = ?");
         $stmt->bind_param('s', $_SESSION['user_id'],);
         $stmt->execute();
+        $stmt->close();
 
         // Notifica
         $message = "Acquisto effettuato di € ".$totalPrice." ordine #".$orderId;
-        $this->SendNotificationToCurrentUser(1, $message);
+        $this->SendNotificationToCurrentUser(1, $message,);
 
         return "ok";
     }
@@ -332,16 +341,44 @@ public function AddSellerItem($name, $price, $file) {
         return $result;
     }
 
-    public function SendNotificationToUser($user, $type, $message) {
-        $stmt = $this->db->prepare("INSERT INTO notifications (`User`,`Type`,`Description`) VALUES (?,?,?)");
-        $stmt->bind_param('sss', $user, $type, $message);
+    // $user: Utente a cui inviare la notifica
+    // $type: Tipo di notifica (vedi db)
+    // $message: Messaggio della notifica
+    // $alertType: Tipo di "alert" della notifica (vedi db), di default = 1 ("info")
+    public function SendNotificationToUser($user, $type, $message, $alertType = 1) {
+        $stmt = $this->db->prepare("INSERT INTO notifications (`User`,`Type`,`AlertType`,`Description`) VALUES (?,?,?,?)");
+        $stmt->bind_param('ssss', $user, $type, $alertType, $message);
         $success = $stmt->execute();
 
         return $success;
     }
 
-    public function SendNotificationToCurrentUser($type, $message) {
-        return $this->SendNotificationToUser($_SESSION['user_id'], $type, $message);
+    public function SendNotificationToCurrentUser($type, $message, $alertType = 1) {
+        return $this->SendNotificationToUser($_SESSION['user_id'], $type, $message, $alertType);
+    }
+
+    public function GetUserNotifications() {
+        $stmt = $this->db->prepare("SELECT n.NotificationId, n.Description AS `Message`, n.Viewed, n.CreationDateTime, nt.TypeId, nt.Description AS TypeDesc, nat.AlertTypeId, nat.Description AS AlertTypeDesc FROM notifications AS n INNER JOIN notification_types AS nt ON n.Type = nt.TypeId INNER JOIN notification_alert_types AS nat ON n.AlertType = nat.AlertTypeId WHERE n.User = ? ORDER BY n.Viewed ASC, n.CreationDateTime DESC");
+        $stmt->bind_param('s', $_SESSION['user_id']);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function ChangeNotificationViewedStatus($notificationId, $viewed) {
+        $stmt = $this->db->prepare("UPDATE notifications SET Viewed = ? WHERE NotificationId = ?");
+        $stmt->bind_param('ss', $viewed, $notificationId);
+        $success = $stmt->execute();
+
+        return $success;
+    }
+
+    public function DeleteNotification($notificationId) {
+        $stmt = $this->db->prepare("DELETE FROM notifications WHERE NotificationId = ?");
+        $stmt->bind_param('s', $notificationId);
+        $success = $stmt->execute();
+
+        return $success;
     }
 
     public function SecureLogout() {

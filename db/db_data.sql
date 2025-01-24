@@ -27,9 +27,18 @@ VALUES
 INSERT INTO `notification_types`
 (`TypeId`, `Description`)
 VALUES
-(1, 'Success'),
-(2, 'Warning'),
-(3, 'Error');
+(1, 'Ordine effettuato'),
+(2, 'Ordine modificato'),
+(3, 'Prodotto esaurito'),
+(4, 'Disponibilità modificata');
+
+INSERT INTO `notification_alert_types`
+(`AlertTypeId`, `Description`)
+VALUES
+(1, 'Info'),
+(2, 'Success'),
+(3, 'Warning'),
+(4, 'Error');
 
 INSERT INTO `order_status`
 (`StatusId`, `Description`)

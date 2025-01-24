@@ -10,7 +10,7 @@ body {
     overflow-y: scroll;
 }
 
-body, header, h1, h2, h5, ul {
+body, header, h1, h2, h3, h5, ul {
     margin: 0;
     padding: 0;
 }
@@ -19,7 +19,8 @@ h1 {
     text-align: center;
 }
 
-h1, h2, p, label, thead, td, input[type="button"], input[type="submit"] {
+html {
+/* h1, h2, h3, p, label, thead, td, input[type="button"], input[type="submit"] { */
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
@@ -238,16 +239,20 @@ table tr {
     color: red;
 }
 
-section.wallet {
+aside.wallet, aside.cart {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     border: 3px solid #9f9f9f;
+    border-radius: 20px;
     max-width: 400px;
     padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 40px;
 }
 
-section.wallet > h1, section.wallet > input[type="number"] {
+aside.wallet > h1, aside.wallet > input[type="number"] {
     width: auto;
 }
 
@@ -261,10 +266,41 @@ main > div > section > form > label {
     display: block;
 }
 
+main > div > section > form > section > input[type="button"]:last-child {
+    margin-left: 10px;
+}
+
 .fade-out {
     animation: fade-out;
     animation-duration: .2s;
     animation-timing-function: ease-out;
+}
+
+.primaryButton {
+    color: white;
+    background-color: #A219D4;
+    border: solid #A219D4;
+    border-radius: 25px;
+}
+
+@media screen and (min-width:768px) {
+    aside.wallet, aside.cart {
+        position: absolute;
+        background-color: white;
+        right: 1rem;
+    }
+
+    aside.wallet {
+        width: 250px;
+    }
+
+    aside.cart {
+        width: 350px;
+    }
+
+    section.orders {
+        margin-right: 300px;
+    }
 }
 
 /*pagina venditore 

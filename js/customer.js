@@ -134,7 +134,7 @@ async function ShowProducts() {
                         </aside>
                     </section>
                     <footer>
-                        <h2>${products[i]["ShortDesc"]}</h2>
+                        <h3>${products[i]["ShortDesc"]}</h3>
                     </footer>
                 </article>`
         }
@@ -165,7 +165,7 @@ function RecalculateCartProductsTotalPrice() {
     });
 
     document.querySelector("main > section:last-child > h2")
-        .innerHTML = `Total: ${total} €`;
+        .innerHTML = `Totale: ${total} €`;
 }
 
 async function ShowCartProducts() {
@@ -222,10 +222,10 @@ async function ShowCartProducts() {
             <section>
                 ${articles}
             </section>
-            <section>
-                <h2>Total: 0.00 €</h2>
-                <input type="button" value="Procedi all'acquisto"/>
-            </section>`;
+            <aside class="cart">
+                <h2>Totale: 0.00 €</h2>
+                <input type="button" class="primaryButton" value="Procedi all'acquisto"/>
+            </aside>`;
 
         RecalculateCartProductsTotalPrice();
 
@@ -323,7 +323,7 @@ async function ShowProductDetails() {
                 </section>
                 <footer>
                     <h2>${result["ShortDesc"]}</h2>
-                    <input type="button" value="Aggiungi al carrello"/>
+                    <input type="button" class="primaryButton" value="Aggiungi al carrello"/>
                 </footer>
             </article>`;
         
@@ -445,11 +445,11 @@ async function ShowUserBudget() {
 
     return await ExecutePostRequest("api-wallet.php", formData, async budget => {
         const resultHtml = `
-            <section class="wallet">
+            <aside class="wallet">
                 <h2>Disponibilità</h2>
                 <h1 id="budget">${budget["Budget"]} €</h1>
-                <input type="button" id="handle-button" value="Gestisci"/>
-            </section>`;
+                <input type="button" class="primaryButton" id="handle-button" value="Gestisci"/>
+            </aside>`;
 
         return resultHtml;
     }, error => console.log(error));
@@ -551,8 +551,8 @@ async function ShowHandleWalletModal() {
                     <label for="amount">Seleziona un importo</label>
                     <input type="number" name="amount" id="amount" step=".01" value="0.00"/>
                     <section>
-                        <input type="button" id="withdraw-button" value="Preleva"/>
-                        <input type="button" id="charge-button" value="Carica"/>
+                        <input type="button" class="primaryButton" id="withdraw-button" value="Preleva"/>
+                        <input type="button" class="primaryButton" id="charge-button" value="Carica"/>
                     </section>
                 </form>
             </section>

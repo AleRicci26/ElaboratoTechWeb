@@ -72,16 +72,24 @@ ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `elab`.`notification_types` (
     `TypeId` INT NOT NULL AUTO_INCREMENT,
-    `Description` VARCHAR(20) NOT NULL,
+    `Description` VARCHAR(100) NOT NULL,
     PRIMARY KEY(`TypeId`))
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `elab`.`notification_alert_types` (
+    `AlertTypeId` INT NOT NULL AUTO_INCREMENT,
+    `Description` VARCHAR(20) NOT NULL,
+    PRIMARY KEY(`AlertTypeId`))
 ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `elab`.`notifications` (
     `NotificationId` INT NOT NULL AUTO_INCREMENT,
     `User` INT NOT NULL,
     `Type` INT NOT NULL,
+    `AlertType` INT NOT NULL,
     `Description` VARCHAR(200) NOT NULL,
-    `Viewed` BOOLEAN NOT NULL DEFAULT 0, 
+    `Viewed` BOOLEAN NOT NULL DEFAULT 0,
+    `CreationDateTime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(`NotificationId`),
     INDEX `fk_notifications_users_idx` (`User` ASC),
     CONSTRAINT `fk_notifications_users`
@@ -92,6 +100,11 @@ CREATE TABLE IF NOT EXISTS `elab`.`notifications` (
     CONSTRAINT `fk_notifications_types`
         FOREIGN KEY (`Type`)
         REFERENCES `elab`.`notification_types` (`TypeId`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+    CONSTRAINT `fk_notifications_alert_types`
+        FOREIGN KEY (`AlertType`)
+        REFERENCES `elab`.`notification_alert_types` (`AlertTypeId`)
         ON DELETE NO ACTION
         ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -106,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `elab`.`orders` (
     `OrderId` INT NOT NULL AUTO_INCREMENT,
     `User` INT NOT NULL,
     `Status` INT NOT NULL,
+    `CreationDateTime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(`OrderId`),
     INDEX `fk_orders_users_idx` (`User` ASC),
     CONSTRAINT `fk_orders_users`
