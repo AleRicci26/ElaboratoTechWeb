@@ -51,6 +51,7 @@ class DatabaseAPI {
                 }
             }
         } else {
+            $result["error"] = "userNotExists";
             // L'utente inserito non esiste.
             return $result;
         }

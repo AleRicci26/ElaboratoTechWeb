@@ -10,6 +10,7 @@ async function ShowLoginPage() {
                 <input type="password" id="password" name="password" placeholder="Password *" required value="test"/>
             </fieldset>
             <input type="submit" value="Accedi"/>
+            <p class="error"></p>
             <p>Non hai un account? <a href="javascript:ShowSignUpPage()">Registrati</a></p>
         </form>`;
 
@@ -32,6 +33,7 @@ async function ShowSignUpPage() {
                 <input type="password" id="confirm-password" name="confirm-password" placeholder="Conferma Password *" required/>
             </fieldset>
             <input type="submit" value="Registrati">
+            <p class="error"></p>
             <p>Hai già un account? <a href="javascript:ShowLoginPage()">Accedi</a></p>
         </form>`;
 
@@ -74,9 +76,9 @@ async function Login() {
                 ShowUserHomePage();
             }
         }
-        // else{
-        //     document.querySelector("form > p").innerText = json["error"];
-        // }
+        else {
+            document.querySelector("form > p").innerText = json["error"];
+        }
     } catch (error) {
         console.log(error.message);
     }
@@ -89,7 +91,7 @@ async function SignUp() {
     const confirmPassword = document.querySelector("#confirm-password").value;
 
     if (password !== confirmPassword) {
-        alert("Le password non corrispondono");
+        document.querySelector("form > p").innerText = "Le password non corrispondono";
         return;
     }
 
@@ -117,9 +119,9 @@ async function SignUp() {
         if(json["success"]) {
             ShowUserHomePage();
         }
-        // else{
-        //     document.querySelector("form > p").innerText = json["error"];
-        // }
+        else{
+            document.querySelector("form > p").innerText = json["error"];
+        }
     } catch (error) {
         console.log(error.message);
     }

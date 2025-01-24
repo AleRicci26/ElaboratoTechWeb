@@ -234,7 +234,6 @@ async function ShowCartProducts() {
             CheckoutCart();
         });
 
-        // TODO: pulsanti + e -
         let minusButtons = document.querySelectorAll("article > footer > section > h2:first-child");
         for (let i = 0; i < minusButtons.length; i++) {
             minusButtons[i].addEventListener(EVENT_CLICK, e => DecreaseCartProductQuantity(i));
@@ -409,14 +408,17 @@ async function ShowSearchPageResults(textFilter) {
 async function ShowUserPageControls() {
     const budgetHtml = await ShowUserBudget();
     const ordersHtml = await ShowUserOrders();
+    const handleWalletHtml = await ShowHandleWalletModal();
 
     document.querySelector("main").innerHTML = `
-        <section class="wallet">
-            ${budgetHtml}
-        </section>
-        <section class="orders">
-            ${ordersHtml}
-        </section>`;
+        ${budgetHtml}
+        ${ordersHtml}
+        ${handleWalletHtml}`;
+
+    document.querySelector("#handle-button").addEventListener(EVENT_CLICK, e => {
+        e.preventDefault();
+        EnableHandleWalletModal();
+    });
 
     document.querySelector("#charge-button").addEventListener(EVENT_CLICK, e => {
         e.preventDefault();
@@ -437,10 +439,12 @@ async function ShowUserBudget() {
 
     return await ExecutePostRequest("api-wallet.php", formData, async budget => {
         const resultHtml = `
-            <h2 id="budget">Disponibilita': <strong>${budget["Budget"]} €</strong></h2>
-            <input type="number" step=".01" value="0.00"/>
-            <input type="button" id="charge-button" value="Carica"/>
-            <input type="button" id="withdraw-button" value="Preleva"/>`;
+            <section class="wallet">
+                <h2>Disponibilità</h2>
+                <h1 id="budget">${budget["Budget"]} €</h1>
+                <input type="button" id="handle-button" value="Gestisci"/>
+            </section>`;
+
         return resultHtml;
     }, error => console.log(error));
 }
@@ -520,13 +524,35 @@ async function ShowUserOrders() {
         }
 
         const resultHtml = `
-            <table>
-                <caption>I tuoi ordini</caption>
-                ${ordersHtml}
-            </table>`;
+            <section class="orders">
+                <table>
+                    <caption>I tuoi ordini</caption>
+                    ${ordersHtml}
+                </table>
+            </section>`;
 
         return resultHtml;
     }, error => console.log(error));
+}
+
+async function ShowHandleWalletModal() {
+    return `
+        <div id="theOuterDiv">            
+            <div id="addNewItem">
+                <button>Add An Item</button>           
+            </div>                    
+            <section>
+                <input type="number" step=".01" value="0.00"/>
+                <section>
+                    <input type="button" id="withdraw-button" value="Preleva"/>
+                    <input type="button" id="charge-button" value="Carica"/>
+                </section>
+            </section>
+        </div>`;
+}
+
+async function EnableHandleWalletModal() {
+    document.querySelector("main > div > section").classList.add("show");
 }
 
 async function Logout() {
