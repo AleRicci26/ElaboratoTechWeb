@@ -252,16 +252,18 @@ class DatabaseAPI {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 //funzione venditore aggiungere un item
-public function AddSellerItem($name, $price, $file){
-    try{
-        $stmt = $this->db->prepare("INSERT INTO `products` (`ProductId`, `Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`) VALUES (NULL, '$name', 'test', 'testing', '$price', '1', '1', '1', '10', '$file')");
+public function AddSellerItem($name, $price, $file) {
+    try {
+        $stmt = $this->db->prepare("INSERT INTO `products` (`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`) VALUES (?, 'Short description', 'Long description', ?, 1, 1, 1, 10, ?)");
+        $stmt->bind_param('sss', $name, $price, $file);
         $stmt->execute();
 
-        return "Data Added";
-    }catch(Exception $e){
-        return "Unable to handle the data";
+        return ["success" => true, "message" => "Product added successfully"];
+    } catch (Exception $e) {
+        return ["success" => false, "message" => "Unable to handle the data"];
     }
 } 
+
 
     public function GetOrderDetails($orderId) {
         $stmt = $this->db->prepare("SELECT od.RowNum, od.Product, od.Quantity, od.TotalPrice, p.Name FROM order_details AS od INNER JOIN products AS p ON od.Product = p.ProductId WHERE `Order` = ?");
