@@ -21,6 +21,9 @@ async function ShowLoginPage() {
             Login();
         }
     });
+
+    document.querySelector("nav").innerHTML = "";
+    document.querySelector("footer").innerHTML = "";
 }
 
 async function ShowSignUpPage() {

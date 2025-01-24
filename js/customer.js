@@ -415,6 +415,12 @@ async function ShowUserPageControls() {
         ${ordersHtml}
         ${handleWalletHtml}`;
 
+    document.querySelector("main > div > section").addEventListener(EVENT_CLICK, e => {
+        if (e.target.nodeName == "SECTION") {
+            HideHandleWalletModal();
+        }
+    })
+
     document.querySelector("#handle-button").addEventListener(EVENT_CLICK, e => {
         e.preventDefault();
         EnableHandleWalletModal();
@@ -450,8 +456,7 @@ async function ShowUserBudget() {
 }
 
 function RefreshUserBudget(newBudget) {
-    document.querySelector("#budget").innerHTML =
-        `Disponibilita': <strong>${newBudget} €</strong>`;
+    document.querySelector("#budget").innerHTML = `${newBudget} €</strong>`;
 }
 
 async function ChargeUserWallet($money) {
@@ -461,6 +466,7 @@ async function ChargeUserWallet($money) {
 
     await ExecutePostRequest("api-wallet.php", formData, async result => {
         RefreshUserBudget(result["newBudget"]);
+        HideHandleWalletModal();
     }, error => console.log(error));
 }
 
@@ -470,7 +476,9 @@ async function WithdrawUserWallet($money) {
     formData.append("Money", $money);
 
     await ExecutePostRequest("api-wallet.php", formData, async result => {
+        console.log(result);
         RefreshUserBudget(result["newBudget"]);
+        HideHandleWalletModal();
     }, error => console.log(error));
 }
 
@@ -537,18 +545,25 @@ async function ShowUserOrders() {
 
 async function ShowHandleWalletModal() {
     return `
-        <div id="theOuterDiv">            
-            <div id="addNewItem">
-                <button>Add An Item</button>           
-            </div>                    
+        <div>
             <section>
-                <input type="number" step=".01" value="0.00"/>
-                <section>
-                    <input type="button" id="withdraw-button" value="Preleva"/>
-                    <input type="button" id="charge-button" value="Carica"/>
-                </section>
+                <form>
+                    <label for="amount">Seleziona un importo</label>
+                    <input type="number" name="amount" id="amount" step=".01" value="0.00"/>
+                    <section>
+                        <input type="button" id="withdraw-button" value="Preleva"/>
+                        <input type="button" id="charge-button" value="Carica"/>
+                    </section>
+                </form>
             </section>
         </div>`;
+}
+
+async function HideHandleWalletModal() {
+    let modal = document.querySelector("main > div > section");
+
+    modal.classList.remove("show");
+    // modal.classList.add("fade-out");
 }
 
 async function EnableHandleWalletModal() {

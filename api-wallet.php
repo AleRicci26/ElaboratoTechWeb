@@ -1,6 +1,10 @@
 <?php
 require_once 'startup.php';
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Visualizza i dati del budget dell'utente
 if ($_POST["action"] == 1) {
     $result = $db->GetUserBudgetDetails();

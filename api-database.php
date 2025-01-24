@@ -300,15 +300,31 @@ public function AddSellerItem($name, $price, $file) {
     }
 
     public function WithdrawUserWallet($money) {
+        $stmt = $this->db->prepare("SELECT u.Budget FROM users AS u WHERE u.UserId = ?");
+        $stmt->bind_param('s', $_SESSION['user_id']);
+        $stmt->execute();
+        $stmt->bind_result($userBudget);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($userBudget < $money) {
+            $result["success"] = false;
+            $result["error"] = "notEnoughBudget";
+
+            return $result;
+        }
+
         $stmt = $this->db->prepare("UPDATE users SET Budget = GREATEST(Budget - ?, 0) WHERE UserId = ?");
         $stmt->bind_param('ss', $money, $_SESSION['user_id']);
         $success = $stmt->execute();
+        $stmt->close();
 
         $stmt = $this->db->prepare("SELECT Budget FROM users WHERE UserId = ?");
         $stmt->bind_param('s', $_SESSION['user_id']);
         $stmt->execute();
         $stmt->bind_result($newBudget);
         $stmt->fetch();
+        $stmt->close();
 
         $result["success"] = $success;
         $result["newBudget"] = $newBudget;
