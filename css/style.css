@@ -6,6 +6,10 @@
     box-sizing: border-box;
 }
 
+body {
+    overflow-y: scroll;
+}
+
 body, header, h1, h2, h5, ul {
     margin: 0;
     padding: 0;

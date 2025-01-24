@@ -11,11 +11,11 @@ VALUES
 ('test.prova@gmail.com', 1, '3f0df3448b52b530c9f90dea4b20f0391e4cf0709b61f86c51cd668323ae3fabae42847c6fd96788dcd957dbb4af0ba5ec063a079eb92fef48805b1fa24a3524', '80f3297da5f583c659b7687e5ee9ba3fbb98b9b51b905af98b02fbe745417a482b286eb758605171782fb7208647a692d78bf7a0475f12450bba1d98227c5356', NULL, 0, 2000.00);
 
 INSERT INTO `product_categories`
-(`Description`)
+(`CategoryId`, `Description`)
 VALUES
-('Gioco da tavolo'),
-('Gioco di carte'),
-('Rompicapo');
+(1, 'Gioco da tavolo'),
+(2, 'Gioco di carte'),
+(3, 'Rompicapo');
 
 INSERT INTO `products`
 (`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`)
@@ -32,9 +32,9 @@ VALUES
 (3, 'Error');
 
 INSERT INTO `order_status`
-(`Description`)
+(`StatusId`, `Description`)
 VALUES
-('Da spedire'),
-('In spedizione'),
-('Cancellato'),
-('Arrivato');
+(1, 'Da spedire'),
+(2, 'In spedizione'),
+(3, 'Cancellato'),
+(4, 'Arrivato');
