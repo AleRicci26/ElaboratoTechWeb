@@ -58,7 +58,7 @@ async function ShowSellerHomePage() {
         })
 
         let theForm = document.querySelector('form')
-        theForm.addEventListener('submit', (e)=>{
+        theForm.addEventListener('submit', async (e)=>{
              e.preventDefault()
              let theProductName = document.querySelector('input[name=productName]').value
              let theProductPrice = document.querySelector('input[name=productPrice]').value
@@ -72,10 +72,16 @@ async function ShowSellerHomePage() {
              theFormData.append('file', theProductFile)
 
              //send form data to the API
-             fetch('./api-new-seller-item.php', {
+             let response = await fetch('./api-new-seller-item.php', {
                 method: "POST",
                 body: theFormData
-             }).then(res => console.log(res))
+             })
+             
+             let result = await response.json()
+             console.log(result)
+
+             //refresh page
+             ShowSellerHomePage()
              
 
 
