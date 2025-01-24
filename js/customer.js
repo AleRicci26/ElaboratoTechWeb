@@ -127,7 +127,7 @@ async function ShowProducts() {
                             <figcaption></figcaption>
                         </figure>
                         <aside>
-                            <h2>$${products[i]["Price"]}</h2>
+                            <h2>${products[i]["Price"]} €</h2>
                             <section>
                                 <h2>${products[i]["PlayerNumFrom"]}-${products[i]["PlayerNumTo"]}</h2>
                             </section>
@@ -164,7 +164,7 @@ function RecalculateCartProductsTotalPrice() {
         total += product["Price"] * product["Quantity"];
     });
 
-    document.querySelector("main > section:last-child > h2")
+    document.querySelector("main > aside > h2")
         .innerHTML = `Totale: ${total} €`;
 }
 
@@ -229,7 +229,7 @@ async function ShowCartProducts() {
 
         RecalculateCartProductsTotalPrice();
 
-        document.querySelector(`main > section:last-child > input[type="button"]`).addEventListener(EVENT_CLICK, e => {
+        document.querySelector(`main > aside > input[type="button"]`).addEventListener(EVENT_CLICK, e => {
             e.preventDefault();
             CheckoutCart();
         });
@@ -315,7 +315,7 @@ async function ShowProductDetails() {
                         <figcaption></figcaption>
                     </figure>
                     <aside>
-                        <h2>$${result["Price"]}</h2>
+                        <h2>${result["Price"]} €</h2>
                         <section>
                             <h2>${result["PlayerNumFrom"]}-${result["PlayerNumTo"]}</h2>
                         </section>
@@ -376,7 +376,7 @@ async function ShowSearchPageResults(textFilter) {
                             <figcaption></figcaption>
                         </figure>
                         <aside>
-                            <h2>$${result[i]["Price"]}</h2>
+                            <h2>${result[i]["Price"]} €</h2>
                             <section>
                                 <h2>${result[i]["PlayerNumFrom"]}-${result[i]["PlayerNumTo"]}</h2>
                             </section>

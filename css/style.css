@@ -118,6 +118,7 @@ ul {
 
 ul li {
     display: inline-block;
+    cursor: pointer;
 }
 
 body > footer {
@@ -285,7 +286,7 @@ main > div > section > form > section > input[type="button"]:last-child {
 
 @media screen and (min-width:768px) {
     aside.wallet, aside.cart {
-        position: absolute;
+        position: fixed;
         background-color: white;
         right: 1rem;
     }
@@ -330,7 +331,7 @@ main > div > section.show{
 main > div > section.show > form {
     transform: translateY(0%);
     animation-name: ease-in-from-above;
-    animation-duration: .5s;
+    animation-duration: .4s;
     animation-timing-function: ease-out;
 }
 
