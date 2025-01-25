@@ -1,3 +1,6 @@
+let iconPlayers;
+LoadSvg("icon-players").then(res => iconPlayers = res);
+
 async function ShowFooter() {
     const iconHome = await LoadSvg("icon-home");
     const iconSearch = await LoadSvg("icon-search");
@@ -98,6 +101,31 @@ async function ShowUserHomePage() {
     await ShowProducts();
 }
 
+function CreateProduct(product) {
+    return `
+        <article id="prod-${product["ProductId"]}">
+            <header>
+                <h2>${product["Name"]}</h2>
+            </header>
+            <section>
+                <figure>
+                    <img src="${product["ImageName"]}" alt=""/>
+                    <figcaption></figcaption>
+                </figure>
+                <aside>
+                    <h2>${product["Price"]} €</h2>
+                    <section>
+                        <figure>${iconPlayers}</figure>
+                        <h2>${product["PlayerNumFrom"]}-${product["PlayerNumTo"]}</h2>
+                    </section>
+                </aside>
+            </section>
+            <footer>
+                <h3>${product["ShortDesc"]}</h3>
+            </footer>
+        </article>`;
+}
+
 async function ShowProducts() {
     const url = 'api-products.php';
     
@@ -116,27 +144,7 @@ async function ShowProducts() {
         let articles = "";
 
         for (let i = 0; i < products.length; i++) {
-            articles += `
-                <article id="prod-${products[i]["ProductId"]}">
-                    <header>
-                        <h2>${products[i]["Name"]}</h2>
-                    </header>
-                    <section>
-                        <figure>
-                            <img src="${products[i]["ImageName"]}" alt=""/>
-                            <figcaption></figcaption>
-                        </figure>
-                        <aside>
-                            <h2>${products[i]["Price"]} €</h2>
-                            <section>
-                                <h2>${products[i]["PlayerNumFrom"]}-${products[i]["PlayerNumTo"]}</h2>
-                            </section>
-                        </aside>
-                    </section>
-                    <footer>
-                        <h3>${products[i]["ShortDesc"]}</h3>
-                    </footer>
-                </article>`
+            articles += CreateProduct(products[i]);
         }
 
         main.innerHTML = `
@@ -203,6 +211,7 @@ async function ShowCartProducts() {
                         <aside>
                             <h2>$${cartProducts[i]["Price"]}</h2>
                             <section>
+                                <figure>${iconPlayers}</figure>
                                 <h2>${cartProducts[i]["PlayerNumFrom"]}-${cartProducts[i]["PlayerNumTo"]}</h2>
                             </section>
                         </aside>
@@ -345,55 +354,72 @@ async function AddProductToCart() {
 }
 
 async function ShowSearchPageControls() {
-    document.querySelector("main").innerHTML = ``;
-
     document.querySelector("nav > ul > li:nth-child(2)").innerHTML = `
         <input type="search" value="" placeholder="Cerca..."/>`;
 
+    document.querySelector("main").innerHTML = `
+        <section class="filters">
+            <section>
+                <h3>Giocatori:</h3>
+                <section>
+                    <label for="playersFrom">Da</label>
+                    <input type="number" name="playersFrom" id="playersFrom"/>
+                    <label for="playersTo">A</label>
+                    <input type="number" name="playersTo" id="playersTo"/>
+                </section>
+            </section>
+            <section>
+                <h3>Budget:</h3>
+                <section class="no-label">
+                    <label for="maxPrice">Budget: </label>
+                    <input type="number" name="maxPrice" id="maxPrice"/>
+                    <h3> €</h3>
+                </section>
+            </section>
+        </section>
+        <section>
+        </section>`;
+
     document.querySelector(`input[type="search"]`).addEventListener(EVENT_INPUT, e => {
-        let text = document.querySelector(`input[type="search"]`).value;
-        ShowSearchPageResults(text);
+        ShowSearchPageResults();
+    });
+
+    document.querySelector(`.filters > section:nth-child(1) > section > input[type="number"]:nth-child(2)`).addEventListener(EVENT_INPUT, e => {
+        ShowSearchPageResults();
+    });
+
+    document.querySelector(`.filters > section:nth-child(1) > section > input[type="number"]:nth-child(4)`).addEventListener(EVENT_INPUT, e => {
+        ShowSearchPageResults();
+    });
+
+    document.querySelector(`.filters > section:nth-child(2) > section > input[type="number"]`).addEventListener(EVENT_INPUT, e => {
+        ShowSearchPageResults();
     });
 }
 
-async function ShowSearchPageResults(textFilter) {
+async function ShowSearchPageResults() {
+    const textFilter = document.querySelector(`input[type="search"]`).value;
+    const playerFrom = document.querySelector(`.filters > section:nth-child(1) > section > input[type="number"]:nth-child(2)`).value || 0;
+    const playerTo = document.querySelector(`.filters > section:nth-child(1) > section > input[type="number"]:nth-child(4)`).value || Number.MAX_VALUE;
+    const maxPrice = document.querySelector(`.filters > section:nth-child(2) > section > input[type="number"]`).value || Number.MAX_VALUE;
+
     const formData = new FormData();
     formData.append("TextFilter", textFilter);
+    formData.append("PlayerFrom", playerFrom);
+    formData.append("PlayerTo", playerTo);
+    formData.append("MaxPrice", maxPrice);
 
     await ExecutePostRequest("api-search.php", formData, result => {
-        let main = document.querySelector("main");
+        let container = document.querySelector("main > section:nth-child(2)");
         let articles = "";
 
         for (let i = 0; i < result.length; i++) {
-            articles += `
-                <article id="prod-${result[i]["ProductId"]}">
-                    <header>
-                        <h2>${result[i]["Name"]}</h2>
-                    </header>
-                    <section>
-                        <figure>
-                            <img src="${result[i]["ImageName"]}" alt=""/>
-                            <figcaption></figcaption>
-                        </figure>
-                        <aside>
-                            <h2>${result[i]["Price"]} €</h2>
-                            <section>
-                                <h2>${result[i]["PlayerNumFrom"]}-${result[i]["PlayerNumTo"]}</h2>
-                            </section>
-                        </aside>
-                    </section>
-                    <footer>
-                        <h2>${result[i]["ShortDesc"]}</h2>
-                    </footer>
-                </article>`
+            articles += CreateProduct(result[i]);
         }
 
-        main.innerHTML = `
-            <section>
-                ${articles}
-            </section>`;
+        container.innerHTML = articles;
 
-        document.querySelectorAll("main > section > article").forEach(element => {
+        document.querySelectorAll("main > section:nth-child(2) > article").forEach(element => {
             element.addEventListener(EVENT_CLICK, e => {
                 e.preventDefault();
                 

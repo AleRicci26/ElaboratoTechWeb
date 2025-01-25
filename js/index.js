@@ -3,7 +3,7 @@ this.ShowLoginPage();
 async function ShowLoginPage() {
     document.querySelector("main").innerHTML = `
         <form action="" method="POST">
-            <fieldset>
+            <fieldset class="no-label">
                 <label for="email">Email: </label>
                 <input type="email" id="email" name="email" placeholder="Email *" required value="test.prova@gmail.com"/>
                 <label for="password">Password: </label>
@@ -29,10 +29,14 @@ async function ShowLoginPage() {
 async function ShowSignUpPage() {
     document.querySelector("main").innerHTML = `
         <form action="" method="POST">
-            <fieldset>
+            <fieldset class="no-label">
+                <label for="email">Email: </label>
                 <input type="email" id="email" name="email" placeholder="Email *" required/>
+                <label for="tel">Phone Number: </label>
                 <input type="tel" id="tel" name="tel" placeholder="Telefono"/>
+                <label for="password">Password: </label>
                 <input type="password" id="password" name="password" placeholder="Password *" required/>
+                <label for="confirm-password">Confirm Passoword: </label>
                 <input type="password" id="confirm-password" name="confirm-password" placeholder="Conferma Password *" required/>
             </fieldset>
             <input type="submit" value="Registrati">

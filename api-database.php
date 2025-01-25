@@ -239,9 +239,9 @@ class DatabaseAPI {
         return $result;
     }
 
-    public function SearchProducts($textFilter) {
-        $stmt = $this->db->prepare("SELECT ProductId, Name, ShortDesc, LongDesc, Price, PlayerNumFrom, PlayerNumTo, Category, StockQuantity, ImageName FROM products WHERE Name LIKE CONCAT('%',?,'%') OR ShortDesc LIKE CONCAT('%',?,'%') OR LongDesc LIKE CONCAT('%',?,'%')");
-        $stmt->bind_param('sss', $textFilter, $textFilter, $textFilter);
+    public function SearchProducts($textFilter, $playerFrom, $playerTo, $maxPrice) {
+        $stmt = $this->db->prepare("SELECT ProductId, Name, ShortDesc, LongDesc, Price, PlayerNumFrom, PlayerNumTo, Category, StockQuantity, ImageName FROM products WHERE (Name LIKE CONCAT('%',?,'%') OR ShortDesc LIKE CONCAT('%',?,'%') OR LongDesc LIKE CONCAT('%',?,'%')) AND PlayerNumFrom >= ? AND PlayerNumTo <= ? AND Price <= ?");
+        $stmt->bind_param('ssssss', $textFilter, $textFilter, $textFilter, $playerFrom, $playerTo, $maxPrice);
         $stmt->execute();
 
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

@@ -52,7 +52,7 @@ form {
     max-width: 400px;
 }
 
-label {
+.no-label > label {
     display: none;
 }
 
@@ -175,8 +175,28 @@ article > section {
 }
 
 article aside {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: flex-end;
     width: 100%;
+}
+
+article aside > section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border: 2px solid #9f9f9f;
+    border-radius: 12px;
+    margin: 0;
+    padding: 5px;
+    padding-right: 10px;
+    width: 90px;
+}
+
+article aside > section > figure {
+    margin: 0;
+    margin-top: 2px;
 }
 
 article img {
@@ -282,6 +302,47 @@ main > div > section > form > section > input[type="button"]:last-child {
     background-color: #A219D4;
     border: solid #A219D4;
     border-radius: 25px;
+}
+
+section.filters {
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+section.filters > section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+section.filters > section > section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+section.filters > section > section > h2, section.filters > section > section > input {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+section.filters > section > section > input[type="number"] {
+    border: 1px solid #9f9f9f;
+    border-radius: 10px;
+    width: 50px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+}
+
+section.filters > section:nth-child(2) > section > input[type="number"] {
+    width: 120px;
+    text-align: right;
+    padding-right: 10px;
+}
+
+section.filters > section > h3 {
+    margin-right: 10px;
 }
 
 @media screen and (min-width:768px) {
