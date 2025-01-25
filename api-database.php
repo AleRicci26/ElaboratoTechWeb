@@ -274,6 +274,19 @@ public function AddSellerItem($name, $price, $file) {
     }
 } 
 
+public function UpdateProduct($ProductId, $Name, $Price){
+    try{
+        $stmt = $this->db->prepare("UPDATE `products` SET `Name` = ?, `Price` = ? WHERE `products`.`ProductId` = ?");
+        $stmt->bind_param('sdd', $Name, $Price, $ProductId);
+        $stmt->execute();
+
+        return ["success" => true, "message" => "Updated"];
+
+    } catch(Exception $e){
+        return ["success" => false, "message" => "Unable to Update the Product"];
+    }
+}
+
 
     public function GetOrderDetails($orderId) {
         $stmt = $this->db->prepare("SELECT od.RowNum, od.Product, od.Quantity, od.TotalPrice, p.Name FROM order_details AS od INNER JOIN products AS p ON od.Product = p.ProductId WHERE `Order` = ?");
