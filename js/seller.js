@@ -122,7 +122,7 @@ async function ShowSellerHomePage() {
                 let UID = e.target.getAttribute('uid')
                 let theJSForm = new FormData()
                 theJSForm.append('ProductId', UID)
-                fetch('./api-getProduct.php', {
+                fetch('./api-product-Id.php', {
                     method: "POST",
                     body: theJSForm
                 }).then(res => {
@@ -157,7 +157,7 @@ async function ShowSellerHomePage() {
             theJSForm.append('Name', theNewName )
             theJSForm.append('Price', theNewPrice)
 
-            fetch('./api-updateProduct.php', {
+            fetch('./api-update-product.php', {
                 method: "POST",
                 body: theJSForm
             }).then(res => {
