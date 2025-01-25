@@ -29,3 +29,21 @@
         opacity: 0;
     }
 }
+
+@keyframes scale-hover {
+    0% {
+        transform: scale(100%);
+    }
+    100% {
+        transform: scale(120%);
+    }
+}
+
+@keyframes scale-not-hover {
+    0% {
+        transform: scale(120%);
+    }
+    100% {
+        transform: scale(100%);
+    }
+}

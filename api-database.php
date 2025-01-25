@@ -394,6 +394,14 @@ public function UpdateProduct($ProductId, $Name, $Price){
         return $success;
     }
 
+    public function PollForNewNotification($previousDateTime) {
+        $stmt = $this->db->prepare("SELECT n.NotificationId, n.Description AS `Message`, n.Viewed, n.CreationDateTime, nt.TypeId, nt.Description AS TypeDesc, nat.AlertTypeId, nat.Description AS AlertTypeDesc FROM notifications AS n INNER JOIN notification_types AS nt ON n.Type = nt.TypeId INNER JOIN notification_alert_types AS nat ON n.AlertType = nat.AlertTypeId WHERE n.User = ? AND n.CreationDateTime > ? LIMIT 1");
+        $stmt->bind_param('ss', $_SESSION['user_id'], $previousDateTime);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
     public function SecureLogout() {
         $_SESSION['user_id'] = '';
         $_SESSION['email'] = '';

@@ -119,6 +119,8 @@ ul {
 ul li {
     display: inline-block;
     cursor: pointer;
+    width: 100%;
+    text-align: center;
 }
 
 body > footer {
@@ -345,6 +347,53 @@ section.filters > section > h3 {
     margin-right: 10px;
 }
 
+section.notification {
+    background-color: #d9d9d9;
+    display: flex;
+    flex-direction: row;
+    padding: 15px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+}
+
+section.notification > section:first-child > h2 {
+    margin-bottom: 10px;
+}
+
+section.notification > section:last-child > section {
+    display: flex;
+    flex-direction: row;
+}
+
+section.notification > section:last-child > section {
+    display: flex;
+    flex-direction: row;
+}
+
+section.notification > section:last-child > figure {
+    cursor: pointer;
+}
+
+section.viewed {
+    opacity: 0.5;
+}
+
+input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.scale-on-hover {
+    transition: transform .1s ease-in-out;
+}
+
+.scale-on-hover:hover {
+    transform: scale(120%);
+}
+
+.scale-on-hover:not(:hover) {
+    transform: scale(100%);
+}
+
 @media screen and (min-width:768px) {
     aside.wallet, aside.cart {
         position: fixed;
@@ -418,8 +467,7 @@ Author: Lucas*/
     padding: 14px;
 }
 
-
-section{
+section.modal {
     width: 100%;
     height: 100vh;
     background-color: rgba(255,255,255,0.7);
@@ -429,12 +477,20 @@ section{
     display: none;
     align-items: center;
     justify-content: center;
-    
 }
-section.show{
+
+section.show {
     display: flex;
 }
-section form{
+
+section.show > form {
+    transform: translateY(0%);
+    animation-name: ease-in-from-above;
+    animation-duration: .4s;
+    animation-timing-function: ease-out;
+}
+
+section.modal form{
     margin: auto;
     background-color: white;
     display: flex;

@@ -1,6 +1,3 @@
-let iconPlayers;
-LoadSvg("icon-players").then(res => iconPlayers = res);
-
 async function ShowFooter() {
     const iconHome = await LoadSvg("icon-home");
     const iconSearch = await LoadSvg("icon-search");
@@ -10,22 +7,22 @@ async function ShowFooter() {
     document.querySelector("footer").innerHTML = `
         <ul>
             <li>
-                <figure>
+                <figure class="scale-on-hover">
                     ${iconHome}
                 </figure>
             </li>
             <li>
-                <figure>
+                <figure class="scale-on-hover">
                     ${iconSearch}
                 </figure>
             </li>
             <li>
-                <figure>
+                <figure class="scale-on-hover">
                     ${iconUser}
                 </figure>
             </li>
             <li>
-                <figure>
+                <figure class="scale-on-hover">
                     ${iconCart}
                 </figure>
             </li>
@@ -61,14 +58,14 @@ async function ShowNavbar() {
     document.querySelector("nav").innerHTML = `
     <ul>
         <li>
-            <figure>
+            <figure class="scale-on-hover">
                 ${iconLogout}
             </figure>
         </li>
         <li>
         </li>
         <li>
-            <figure>
+            <figure class="scale-on-hover">
                 ${iconNotifications}
             </figure>
         </li>
@@ -77,7 +74,12 @@ async function ShowNavbar() {
     document.querySelector("nav > ul > li:first-child").addEventListener(EVENT_CLICK, e => {
         e.preventDefault();
         Logout();
-    })
+    });
+
+    document.querySelector("nav > ul > li:last-child").addEventListener(EVENT_CLICK, e => {
+        e.preventDefault();
+        ShowUserNotificationPage();
+    });
 }
 
 async function ClearPageControls() {
@@ -99,6 +101,8 @@ async function ShowUserHomePage() {
 
     await ChangeSelectedIcon(1);
     await ShowProducts();
+
+    await StartUserNotificationsPoll();
 }
 
 function CreateProduct(product) {
@@ -156,7 +160,7 @@ async function ShowProducts() {
             element.addEventListener(EVENT_CLICK, e => {
                 e.preventDefault();
                 
-                let element = FindClosestParentOfEventArgs(e, "article");
+                let element = FindClosestParentTagOfEventArgs(e, "article");
                 selectedProductId = ElementIdToDbId(element.id);
                 ShowProductDetailsPage();
             });
@@ -423,7 +427,7 @@ async function ShowSearchPageResults() {
             element.addEventListener(EVENT_CLICK, e => {
                 e.preventDefault();
                 
-                let element = FindClosestParentOfEventArgs(e, "article");
+                let element = FindClosestParentTagOfEventArgs(e, "article");
                 selectedProductId = ElementIdToDbId(element.id);
                 ShowProductDetailsPage();
             });
@@ -559,8 +563,8 @@ async function ShowUserOrders() {
 
         const resultHtml = `
             <section class="orders">
+                <caption>I tuoi ordini</caption>
                 <table>
-                    <caption>I tuoi ordini</caption>
                     ${ordersHtml}
                 </table>
             </section>`;
@@ -572,7 +576,7 @@ async function ShowUserOrders() {
 async function ShowHandleWalletModal() {
     return `
         <div>
-            <section>
+            <section class="modal">
                 <form>
                     <label for="amount">Seleziona un importo</label>
                     <input type="number" name="amount" id="amount" step=".01" value="0.00"/>
@@ -598,8 +602,114 @@ async function EnableHandleWalletModal() {
 
 async function Logout() {
     await ExecutePostRequest("api-secure-logout.php", new FormData(), async res => {
-        this.ShowLoginPage();
+        ShowLoginPage();
+        StopUserNotificationsPoll();
     }, error => console.log(error));
+}
+
+async function ShowUserNotifications() {
+    const formData = new FormData();
+    formData.append("action", 1);
+
+    await ExecutePostRequest("api-notifications.php", formData, async notifications => {
+        const iconTrash = await LoadSvg("icon-trash");
+        let notificationsHtml = "";
+        
+        for (let i = 0; i < notifications.length; i++) {
+            const notification = notifications[i];
+            const id = notification["NotificationId"];
+
+            notificationsHtml += `
+                <section id="notification-${id}" class="notification ${notification["Viewed"] ? "viewed" : ""}">
+                    <section>
+                        <h2>${notification["TypeDesc"]}</h2>
+                        <h3>${notification["Message"]}</h3>
+                    </section>
+                    <section>
+                        <section>
+                            <label for="notification-check-${id}">Già letto</label>
+                            <input type="checkbox" id="notification-check-${id}" name="notification-check-${id}" ${notification["Viewed"] ? "checked" : ""} class="scale-on-hover"/>
+                        </section>
+                        <figure class="scale-on-hover">
+                            ${iconTrash}
+                        </figure>
+                    </section>
+                </section>`;
+        }
+
+        document.querySelector("main").innerHTML = notificationsHtml;
+
+        document.querySelectorAll(`.notification > section:first-child > section > input[type="checkbox"]`).forEach(checkbox => {
+            checkbox.addEventListener(EVENT_CLICK, e => {
+                e.preventDefault();
+                    
+                let element = FindClosestParentClassOfEventArgs(e, "notification");
+                const notificationId = ElementIdToDbId(element.id);
+                const viewed = e.target.checked ? 1 : 0;
+    
+                ChangeUserNotificationViewedStatus(notificationId, viewed);
+            });
+        });
+
+        document.querySelectorAll(`.notification > section:last-child > figure`).forEach(trash => {
+            trash.addEventListener(EVENT_CLICK, e => {
+                e.preventDefault();
+
+                let element = FindClosestParentClassOfEventArgs(e, "notification");
+                const notificationId = ElementIdToDbId(element.id);
+                
+                DeleteUserNotification(notificationId);
+            });
+        });
+
+    }, error => console.log(error));
+}
+
+async function ChangeUserNotificationViewedStatus(notificationId, viewed) {
+    const formData = new FormData();
+    formData.append("action", 2);
+    formData.append("NotificationId", notificationId);
+    formData.append("Viewed", viewed);
+
+    await ExecutePostRequest("api-notifications.php", formData, async res => {
+        await ShowUserNotifications();
+    }, error => console.log(error));
+}
+
+async function DeleteUserNotification(notificationId) {
+    const formData = new FormData();
+    formData.append("action", 3);
+    formData.append("NotificationId", notificationId);
+
+    await ExecutePostRequest("api-notifications.php", formData, async res => {
+        await ShowUserNotifications();
+    }, error => console.log(error));
+}
+
+let prevUserNotificationPollDateTime = GetCurretDateTime();
+let userNotificationPoll;
+
+async function PollUserNotifications() {
+    const formData = new FormData();
+    formData.append("action", 4);
+    formData.append("PreviousDateTime", prevUserNotificationPollDateTime);
+
+    prevUserNotificationPollDateTime = GetCurretDateTime();
+
+    await ExecutePostRequest("api-notifications.php", formData, async notifications => {
+        // console.log(notifications);
+        if (notifications.length > 0) {
+            alert(notifications[0]["Message"]);
+        }
+    }, error => console.log(error));
+}
+
+async function StartUserNotificationsPoll() {
+    userNotificationPoll = setInterval(PollUserNotifications, NOTIFICATION_POLL_INTERVAL);
+}
+
+async function StopUserNotificationsPoll() {
+    clearInterval(userNotificationPoll);
 }
 
 // async function 
@@ -625,4 +735,9 @@ async function ShowCartPage() {
 async function ShowProductDetailsPage() {
     await ClearPageControls();
     await ShowProductDetails();
+}
+
+async function ShowUserNotificationPage() {
+    await ClearPageControls();
+    await ShowUserNotifications();
 }

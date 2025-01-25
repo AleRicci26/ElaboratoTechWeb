@@ -1,6 +1,6 @@
 async function ShowSellerHomePage() {
-    await ShowNavbar();
-    await ShowFooter();
+    await ShowSellerNavbar();
+    await ShowSellerFooter();
 
     const theUrl = "api-products.php"
 
@@ -173,7 +173,7 @@ async function ShowSellerHomePage() {
 
 // Copia delle funzioni ShowNavbar e ShowFooter da customer.js
 
-async function ShowNavbar() {
+async function ShowSellerNavbar() {
     const iconLogout = await LoadSvg("icon-logout");
     const iconNotifications = await LoadSvg("icon-notifications");
 
@@ -199,7 +199,7 @@ async function ShowNavbar() {
     })
 }
 
-async function ShowFooter() {
+async function ShowSellerFooter() {
     const iconHome = await LoadSvg("icon-home");
     const iconSearch = await LoadSvg("icon-search");
     const iconUser = await LoadSvg("icon-user");
