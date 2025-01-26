@@ -1,16 +1,12 @@
 <?php
 require_once 'startup.php';
 
-// Visualizza tutti gli ordini
-if ($_POST["action"] == 1) {
-    $result = $db->GetAllOrders();
-}
 // Visualizza gli ordini dell'utente
-if ($_POST["action"] == 2) {
-    $result = $db->GetUserOrders();
+if ($_POST["action"] == 1) {
+    $result = $db->GetCurrentUserOrders();
 }
 // Visualizza i dettagli degli ordini
-if ($_POST["action"] == 3) {
+if ($_POST["action"] == 2) {
     $result = $db->GetOrderDetails($_POST["OrderId"]);
 }
 

@@ -1,5 +1,6 @@
 EVENT_CLICK = "click";
 EVENT_INPUT = "input";
+EVENT_CHANGE = "change";
 
 NOTIFICATION_POLL_INTERVAL = 2000;
 

@@ -514,7 +514,7 @@ async function WithdrawUserWallet($money) {
 
 async function ShowUserOrders() {
     const formData = new FormData();
-    formData.append("action", 2);
+    formData.append("action", 1);
 
     return await ExecutePostRequest("api-orders.php", formData, async orders => {
         let ordersHtml = "";
@@ -524,7 +524,7 @@ async function ShowUserOrders() {
             let orderDetailsHtml = "";
 
             const innerFormData = new FormData();
-            innerFormData.append("action", 3);
+            innerFormData.append("action", 2);
             innerFormData.append("OrderId", currentOrder["OrderId"]);
 
             await ExecutePostRequest("api-orders.php", innerFormData, orderDetails => {
@@ -639,7 +639,7 @@ async function ShowUserNotifications() {
 
         document.querySelector("main").innerHTML = notificationsHtml;
 
-        document.querySelectorAll(`.notification > section:first-child > section > input[type="checkbox"]`).forEach(checkbox => {
+        document.querySelectorAll(`.notification > section:last-child > section > input[type="checkbox"]`).forEach(checkbox => {
             checkbox.addEventListener(EVENT_CLICK, e => {
                 e.preventDefault();
                     

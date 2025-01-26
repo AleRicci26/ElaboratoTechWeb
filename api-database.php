@@ -248,45 +248,65 @@ class DatabaseAPI {
     }
 
     public function GetAllOrders() {
-        $stmt = $this->db->prepare("SELECT OrderId, User, Status FROM orders");
+        $stmt = $this->db->prepare("SELECT o.OrderId, o.User, o.Status, os.Description FROM orders AS o INNER JOIN order_status AS os ON os.StatusId = o.Status ORDER BY o.User ASC, o.CreationDateTime DESC");
         $stmt->execute();
 
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function GetUserOrders() {
-        $stmt = $this->db->prepare("SELECT o.OrderId, o.User, o.Status, os.Description FROM orders AS o INNER JOIN order_status AS os ON os.StatusId = o.Status WHERE o.User = ?");
+    public function GetCurrentUserOrders() {
+        $stmt = $this->db->prepare("SELECT o.OrderId, o.User, o.Status, os.Description FROM orders AS o INNER JOIN order_status AS os ON os.StatusId = o.Status WHERE o.User = ? ORDER BY o.CreationDateTime DESC");
         $stmt->bind_param('s', $_SESSION['user_id']);
         $stmt->execute();
 
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-//funzione venditore aggiungere un item
-public function AddSellerItem($name, $price, $file) {
-    try {
-        $stmt = $this->db->prepare("INSERT INTO `products` (`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`) VALUES (?, 'Short description', 'Long description', ?, 1, 1, 1, 10, ?)");
-        $stmt->bind_param('sss', $name, $price, $file);
-        $stmt->execute();
 
-        return ["success" => true, "message" => "Product added successfully"];
-    } catch (Exception $e) {
-        return ["success" => false, "message" => "Unable to handle the data"];
+    //funzione venditore aggiungere un item
+    public function AddSellerItem($name, $price, $file) {
+        try {
+            $stmt = $this->db->prepare("INSERT INTO `products` (`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`) VALUES (?, 'Short description', 'Long description', ?, 1, 1, 1, 10, ?)");
+            $stmt->bind_param('sss', $name, $price, $file);
+            $stmt->execute();
+
+            return ["success" => true, "message" => "Product added successfully"];
+        } catch (Exception $e) {
+            return ["success" => false, "message" => "Unable to handle the data"];
+        }
+    } 
+
+    public function UpdateProduct($ProductId, $Name, $Price){
+        try{
+            $stmt = $this->db->prepare("UPDATE `products` SET `Name` = ?, `Price` = ? WHERE `products`.`ProductId` = ?");
+            $stmt->bind_param('sdd', $Name, $Price, $ProductId);
+            $stmt->execute();
+
+            return ["success" => true, "message" => "Updated"];
+
+        } catch(Exception $e){
+            return ["success" => false, "message" => "Unable to Update the Product"];
+        }
     }
-} 
 
-public function UpdateProduct($ProductId, $Name, $Price){
-    try{
-        $stmt = $this->db->prepare("UPDATE `products` SET `Name` = ?, `Price` = ? WHERE `products`.`ProductId` = ?");
-        $stmt->bind_param('sdd', $Name, $Price, $ProductId);
+    public function ChangeOrderStatus($orderId, $newStatus) {
+        $stmt = $this->db->prepare("UPDATE orders SET `Status` = ? WHERE OrderId = ?");
+        $stmt->bind_param('ss', $newStatus, $orderId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        if (!$success) return false;
+
+        $stmt = $this->db->prepare("SELECT o.User, os.Description FROM orders AS o INNER JOIN order_status AS os ON o.Status = os.StatusId WHERE o.OrderId = ?");
+        $stmt->bind_param('s', $orderId);
         $stmt->execute();
+        $stmt->bind_result($targetUser, $newStatusDesc);
+        $stmt->fetch();
+        $stmt->close();
 
-        return ["success" => true, "message" => "Updated"];
+        $this->SendNotificationToUser($targetUser, 2, "Lo stato dell'ordine #".$orderId." è stato impostato su [".$newStatusDesc."]");
 
-    } catch(Exception $e){
-        return ["success" => false, "message" => "Unable to Update the Product"];
+        return $success;
     }
-}
-
 
     public function GetOrderDetails($orderId) {
         $stmt = $this->db->prepare("SELECT od.RowNum, od.Product, od.Quantity, od.TotalPrice, p.Name FROM order_details AS od INNER JOIN products AS p ON od.Product = p.ProductId WHERE `Order` = ?");
@@ -397,6 +417,28 @@ public function UpdateProduct($ProductId, $Name, $Price){
     public function PollForNewNotification($previousDateTime) {
         $stmt = $this->db->prepare("SELECT n.NotificationId, n.Description AS `Message`, n.Viewed, n.CreationDateTime, nt.TypeId, nt.Description AS TypeDesc, nat.AlertTypeId, nat.Description AS AlertTypeDesc FROM notifications AS n INNER JOIN notification_types AS nt ON n.Type = nt.TypeId INNER JOIN notification_alert_types AS nat ON n.AlertType = nat.AlertTypeId WHERE n.User = ? AND n.CreationDateTime > ? LIMIT 1");
         $stmt->bind_param('ss', $_SESSION['user_id'], $previousDateTime);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function GetAllCustomerUsers() {
+        $stmt = $this->db->prepare("SELECT UserId, Email FROM users WHERE `Role` = 1");
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function GetUserOrders($userId) {
+        $stmt = $this->db->prepare("SELECT o.OrderId, o.User, o.Status, os.Description FROM orders AS o INNER JOIN order_status AS os ON os.StatusId = o.Status WHERE o.User = ? ORDER BY o.CreationDateTime DESC");
+        $stmt->bind_param('s', $userId);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function GetAllOrderStatus() {
+        $stmt = $this->db->prepare("SELECT StatusId, Description FROM order_status");
         $stmt->execute();
 
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

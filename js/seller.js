@@ -2,9 +2,9 @@ async function ShowSellerHomePage() {
     await ShowSellerNavbar();
     await ShowSellerFooter();
 
-    const theUrl = "api-products.php"
+    await StartUserNotificationsPoll();
 
-   
+    const theUrl = "api-products.php"
 
     fetch(theUrl, {
         method: "GET",
@@ -52,7 +52,7 @@ async function ShowSellerHomePage() {
                     <button>Add An Item</button>           
                 </div>                    
                 ${theInnerProducts}
-                <section>
+                <section class="modal">
                     <form>
                         <input type="text" placeholder="Name" name="productName"/>
                         <input type="text" placeholder="Price" name="productPrice"/>
@@ -61,7 +61,7 @@ async function ShowSellerHomePage() {
                         <input type="submit" value="Add Iten"/>
                     </form>
                 </section>
-                <section>
+                <section class="modal">
                     <form>
                         <input type="text" placeholder="Name" name="productName"/>
                         <input type="text" placeholder="Price" name="productPrice"/>
@@ -196,14 +196,17 @@ async function ShowSellerNavbar() {
     document.querySelector("nav > ul > li:first-child").addEventListener(EVENT_CLICK, e => {
         e.preventDefault();
         Logout();
-    })
+    });
+
+    document.querySelector("nav > ul > li:last-child").addEventListener(EVENT_CLICK, e => {
+        e.preventDefault();
+        ShowUserNotificationPage();
+    });
 }
 
 async function ShowSellerFooter() {
     const iconHome = await LoadSvg("icon-home");
-    const iconSearch = await LoadSvg("icon-search");
     const iconUser = await LoadSvg("icon-user");
-    const iconCart = await LoadSvg("icon-cart");
 
     document.querySelector("footer").innerHTML = `
         <ul>
@@ -214,17 +217,7 @@ async function ShowSellerFooter() {
             </li>
             <li>
                 <figure>
-                    ${iconSearch}
-                </figure>
-            </li>
-            <li>
-                <figure>
                     ${iconUser}
-                </figure>
-            </li>
-            <li>
-                <figure>
-                    ${iconCart}
                 </figure>
             </li>
         </ul>`;
@@ -238,16 +231,153 @@ async function ShowSellerFooter() {
 
     icons[1].addEventListener("click", e => {
         e.preventDefault();
-        ShowSearchPage();
+        ShowSellerOrdersPage();
     });
+}
 
-    icons[2].addEventListener("click", e => {
-        e.preventDefault();
-        ShowSellerHomePage();
-    });
+async function CreateChangeOrderStatusSelectOptions(selectId, statusId) {
+    const formData = new FormData();
+    formData.append("action", 4);
 
-    icons[3].addEventListener("click", e => {
-        e.preventDefault();
-        ShowSellerHomePage();
+    const statusList = await ExecutePostRequest("api-seller-orders.php", formData, async res => {
+        return res;
+    }, error => console.log(error));
+
+    let optionsHtml = "";
+
+    for (let i = 0; i < statusList.length; i++) {
+        const currentStatus = statusList[i];
+
+        optionsHtml += `
+            <option value="${currentStatus["StatusId"]}" ${currentStatus["StatusId"] == statusId ? "selected" : ""}>
+                ${currentStatus["Description"]}
+            </option>`;
+    }
+
+    return `
+        <label>Modifica stato dell'ordine<br/>
+            <select name="change-order-status" id="${selectId}">
+                ${optionsHtml}
+            </select>
+        </label>`;
+}
+
+async function GetAllUsersOrders() {
+    const formData = new FormData();
+    formData.append("action", 1);
+
+    return await ExecutePostRequest("api-seller-orders.php", formData, async users => {
+        let usersHtml = "";
+
+        for (let i = 0; i < users.length; i++) {
+            const currentUser = users[i];
+            let ordersHtml = "";
+
+            const userFormData = new FormData();
+            userFormData.append("action", 2);
+            userFormData.append("UserId", currentUser["UserId"]);
+
+            await ExecutePostRequest("api-seller-orders.php", userFormData, async orders => {
+                for (let j = 0; j < orders.length; j++) {
+                    const currentOrder = orders[j];
+                    let orderDetailsHtml = "";
+        
+                    const innerFormData = new FormData();
+                    innerFormData.append("action", 2);
+                    innerFormData.append("OrderId", currentOrder["OrderId"]);
+        
+                    await ExecutePostRequest("api-orders.php", innerFormData, async orderDetails => {
+                        for (let k = 0; k < orderDetails.length; k++) {
+                            let currentOrderDetail = orderDetails[k];
+        
+                            orderDetailsHtml += `
+                                <tr>
+                                    <td>${currentOrderDetail["RowNum"]}</td>
+                                    <td>${currentOrderDetail["Name"]}</td>
+                                    <td>${currentOrderDetail["Quantity"]}</td>
+                                    <td>${currentOrderDetail["TotalPrice"]} €</td>
+                                </tr>`;
+                        }
+
+                        const selectId = `change-status-${currentOrder["OrderId"]}`;
+                        const statusId = currentOrder["Status"];
+
+                        const optionsHtml = await CreateChangeOrderStatusSelectOptions(selectId, statusId);
+        
+                        ordersHtml += `
+                            <table>
+                                <tr>
+                                    <td><strong>#${currentOrder["OrderId"]}</strong></td>
+                                    <td>${currentOrder["Description"]}</td>
+                                    <td>${optionsHtml}</td>
+                                </tr>
+                                <tr>
+                                    <table>
+                                        <thead>
+                                            <td>Riga</td>
+                                            <td>Prodotto</td>
+                                            <td>Quantita'</td>
+                                            <td>Prezzo Totale</td>
+                                        </thead>
+                                        ${orderDetailsHtml}
+                                    </table>
+                                </tr>
+                            </table>`;
+                    }, orderDetailsError => console.log(orderDetailsError));
+                }
+
+                usersHtml += `
+                    <table>
+                        <tr>
+                            <td><strong>#${currentUser["UserId"]}</strong></td>
+                            <td>${currentUser["Email"]}</td>
+                        </tr>
+                        <tr>
+                            ${ordersHtml}
+                        </tr>
+                    </table>`;
+            }, ordersError => console.log(ordersError));
+        }
+
+        const resultHtml = `
+            <section class="orders">
+                <caption>Ordini utenti</caption>
+                <table>
+                    ${usersHtml}
+                </table>
+            </section>`;
+
+        return resultHtml;
+    }, error => console.log(error));
+}
+
+async function ChangeOrderStatus(orderId, statusId) {
+    const formData = new FormData();
+    formData.append("action", 3);
+    formData.append("OrderId", orderId);
+    formData.append("StatusId", statusId);
+
+    await ExecutePostRequest("api-seller-orders.php", formData, async res => {
+        console.log(res);
+    }, error => console.log(error));
+}
+
+async function ShowSellerOrdersPage() {
+    await ClearPageControls();
+    await ChangeSelectedIcon(2);
+    
+    const ordersHtml = await GetAllUsersOrders();
+
+    document.querySelector("main").innerHTML = ordersHtml;
+
+    document.querySelectorAll("select").forEach(select => {
+        select.addEventListener(EVENT_CHANGE, e => {
+            e.preventDefault();
+
+            const orderId = ElementIdToDbId(e.target.id);
+            const statusId = e.target.value;
+
+            ChangeOrderStatus(orderId, statusId);
+        })
     });
 }
