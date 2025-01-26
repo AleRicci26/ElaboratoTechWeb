@@ -177,7 +177,7 @@ function RecalculateCartProductsTotalPrice() {
     });
 
     document.querySelector("main > aside > h2")
-        .innerHTML = `Totale: ${total} €`;
+        .innerHTML = `Totale: ${total.toFixed(2)} €`;
 }
 
 async function ShowCartProducts() {
