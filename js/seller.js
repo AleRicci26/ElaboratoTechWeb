@@ -57,33 +57,34 @@ async function ShowSellerHomePage() {
                 ${theInnerProducts}
                 <section class="modal insert">
                     <form>
-                        <label for="productName"></label>
-                        <input type="text" placeholder="Nome" name="productName"/>
-                        <label for="productPrice"></label>
-                        <input type="number" placeholder="Prezzo" name="productPrice" step=".01"/>
-                        <label for="productQuantity"></label>
-                        <input type="number" placeholder="Quantità" name="productQuantity"/>
-                        <label for="productShortDesc"></label>
-                        <input type="text" placeholder="Descrizione" name="productShortDesc"/>
-                        <label for="productLongDesc"></label>
-                        <textarea placeholder="Descrizione estesa" name="productLongDesc"></textarea>
+                        <label for="productName" class="hide"></label>
+                        <input type="text" placeholder="Nome" name="productName" id="productName"/>
+                        <label for="productPrice" class="hide"></label>
+                        <input type="number" placeholder="Prezzo" name="productPrice" id="productPrice" step=".01"/>
+                        <label for="productQuantity" class="hide"></label>
+                        <input type="number" placeholder="Quantità" name="productQuantity" id="productQuantity"/>
+                        <label for="productShortDesc" class="hide"></label>
+                        <input type="text" placeholder="Descrizione" name="productShortDesc" id="productShortDesc"/>
+                        <label for="productLongDesc" class="hide"></label>
+                        <textarea placeholder="Descrizione estesa" name="productLongDesc" id="productLongDesc"></textarea>
                         ${categorySelectHtml}
-                        <label for="productFile"></label>
-                        <input type="file" placeholder="FileName" name="productFile"/>
+                        <label for="productFile" class="hide"></label>
+                        <input type="file" placeholder="FileName" name="productFile" id="productFile"/>
                         <input type="submit" value="Aggiungi prodotto"/>
                     </form>
                 </section>
                 <section class="modal update">
                     <form>
-                        <label for="productName"></label>
-                        <input type="text" placeholder="Nome" name="productName"/>
-                        <label for="productPrice"></label>
-                        <input type="number" placeholder="Prezzo" name="productPrice" step=".01"/>
-                        <input type="number" placeholder="Quantità" name="productQuantity"/>
-                        <label for="productShortDesc"></label>
-                        <input type="text" placeholder="Descrizione" name="productShortDesc"/>
-                        <label for="productLongDesc"></label>
-                        <textarea placeholder="Descrizione estesa" name="productLongDesc"></textarea>
+                        <label for="productName" class="hide"></label>
+                        <input type="text" placeholder="Nome" name="productName" id="productName"/>
+                        <label for="productPrice" class="hide"></label>
+                        <input type="number" placeholder="Prezzo" name="productPrice" id="productPrice" step=".01"/>
+                        <label for="productQuantity" class="hide"></label>
+                        <input type="number" placeholder="Quantità" name="productQuantity" id="productQuantity"/>
+                        <label for="productShortDesc" class="hide"></label>
+                        <input type="text" placeholder="Descrizione" name="productShortDesc" id="productShortDesc"/>
+                        <label for="productLongDesc" class="hide"></label>
+                        <textarea placeholder="Descrizione estesa" name="productLongDesc" id="productLongDesc"></textarea>
                         ${categorySelectHtml}
                         <input type="submit" value="Aggiorna prodotto"/>
                     </form>

@@ -573,3 +573,13 @@ section.insert form, section.update form {
 textarea {
     width: 100%;
 }
+
+header > p {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 30px;
+}
+
+.hide {
+    display: none;
+}

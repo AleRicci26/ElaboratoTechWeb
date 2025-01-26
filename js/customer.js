@@ -359,7 +359,8 @@ async function AddProductToCart() {
 
 async function ShowSearchPageControls() {
     document.querySelector("nav > ul > li:nth-child(2)").innerHTML = `
-        <input type="search" value="" placeholder="Cerca..."/>`;
+        <label for="search" class="hide">Cerca</label>
+        <input type="search" name="search" value="" id="search" placeholder="Cerca..."/>`;
 
     document.querySelector("main").innerHTML = `
         <section class="filters">

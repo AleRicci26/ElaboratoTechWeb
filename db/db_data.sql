@@ -18,11 +18,15 @@ VALUES
 (3, 'Rompicapo');
 
 INSERT INTO `products`
-(`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`)
+(`ProductId`, `Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`)
 VALUES
-('Monopoly', 'Il classico Monopoly', 'Descrizione lunga di test', 29.99, 1, 4, 1, 10, 'Monopoly.jpg'),
-('Exploding Kittens', 'Gioco di carte con gattini', 'Descrizione lunga di test', 19.99, 1, 8, 2, 20, 'Exploding Kittens.jpg'),
-('Cubo di Rubik', 'Il rompicapo più famoso', 'Descrizione lunga di test', 4.99, 1, 1, 3, 30, 'Cubo Rubik.png');
+(1, 'Monopoly', 'Il classico Monopoly', 'Il gioco da tavolo più venduto al mondo. Prodotto da Hasbro.', 29.99, 2, 4, 1, 10, 'Monopoly.jpg'),
+(2, 'UNO', 'Il Classico UNO', 'Il gioco di carte più famoso al mondo, amato da grandi e piccini.', 7.99, 2, 10, 2, 8, 'uno.jpg'),
+(3, 'Carte Romagnole', 'Mazzo unico', 'Le carte "Must Have" per una pausa pranzo indimenticabile con i tuoi colleghi.', 5.99, 2, 4, 2, 10, 'carteromagnole.jpg'),
+(4, 'Risiko', 'Gioco di strategia', 'Uno dei giochi da tavolo più apprezzato dagli amanti della strategia.', 29.99, 3, 6, 1, 10, 'risiko.jpg'),
+(5, 'Exploding Kittens', 'Gioco di carte con gattini', 'ATTENZIONE! Gatti esplosivi in vista. Armati delle carte più folli e potenti per sopravvivere alle esplosioni.', 19.99, 2, 8, 2, 20, 'Exploding Kittens.jpg'),
+(6, 'Cubo di Rubik', 'Il rompicapo più famoso', 'Un ottimo passatempo e metodo di allenamento per la mente', 4.99, 1, 1, 3, 30, 'Cubo Rubik.png'),
+(7, 'Jenga', 'La torre di legno', 'Costruisci la torre di legno più alta e complessa che puoi, sfida i tuoi amici ad estrarre i pezzi senza farla cadere', 15.99, 1, 4, 3, 20, 'jenga.jpg');
 
 INSERT INTO `notification_types`
 (`TypeId`, `Description`)

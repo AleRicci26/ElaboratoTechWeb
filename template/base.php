@@ -10,7 +10,7 @@
 </head>
 <body>
     <header>
-        <h1>Elaborato Tech Web</h1>
+        <p>Uni & Games</p>
     </header>
     <nav>
 
