@@ -5,12 +5,16 @@
         $name = $_POST['name'];
         $price = $_POST['price'];
         $file = $_FILES['file']['name'];
+        $category = $_POST['category'];
+        $quantity = $_POST['quantity'];
+        $shortDesc = $_POST['shortDesc'];
+        $longDesc = $_POST['longDesc'];
         $target_dir = UPLOAD_DIR;
         $target_file = $target_dir . basename($file);
     
         // Move the uploaded file to the target directory
         if (move_uploaded_file($_FILES['file']['tmp_name'], $target_file)) {
-            $result = $db->AddSellerItem($name, $price, $file);
+            $result = $db->AddSellerItem($name, $price, $file, $category, $quantity, $shortDesc, $longDesc);
         } else {
             $result = ["success" => false, "message" => "Failed to upload file"];
         }
@@ -20,5 +24,4 @@
     
     header('Content-Type: application/json');
     echo json_encode($result);
-    ?>
 ?>

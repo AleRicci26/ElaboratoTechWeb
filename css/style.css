@@ -147,19 +147,19 @@ main > section {
     margin-right: 10px;
 }
 
-article {
+article.product {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
     background-color: white;
-    max-width: 400px;
+    max-width: 350px;
     margin-bottom: 20px;
     margin-left: 10px;
     margin-right: 10px;
     padding: 10px;
-    width: 95%;
-    min-height: 40vh;
+    /* width: 95%; */
+    height: 35vh;
     box-shadow: 0px 0px 10px 1px #888888;
     border: 2px solid white;
     border-radius: 12px;
@@ -169,14 +169,14 @@ article {
     animation-timing-function: ease-in-out;
 }
 
-article > section {
+article.product > section {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     width: 100%;
 }
 
-article aside {
+article.product aside {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
@@ -184,36 +184,38 @@ article aside {
     width: 100%;
 }
 
-article aside > section {
+article.product aside > section {
     display: flex;
     flex-direction: row;
+    align-items: center;
     justify-content: space-between;
     border: 2px solid #9f9f9f;
     border-radius: 12px;
     margin: 0;
     padding: 5px;
     padding-right: 10px;
-    width: 90px;
+    width: 80px;
 }
 
-article aside > section > figure {
+article.product aside > section > figure {
     margin: 0;
     margin-top: 2px;
 }
 
-article img {
-    width: 200px;
+article.product img {
     height: auto;
+    max-height: 140px;
+    margin-left: 10px;
 }
 
-article > footer {
+article.product > footer {
     display: flex;
     flex-direction: row;
     justify-content: center;
     width: 100%;
 }
 
-article > footer > section {
+article.product > footer > section {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -222,19 +224,19 @@ article > footer > section {
     width: 100px;
 }
 
-article > footer > section > h2:first-child {
+article.product > footer > section > h2:first-child {
     margin-left: 10px;
 }
 
-article > footer > section > h2:last-child {
+article.product > footer > section > h2:last-child {
     margin-right: 10px;
 }
 
-article > section > figure {
+article.product > section > figure {
     margin: auto;
 }
 
-article > section > aside {
+article.product > section > aside {
     margin-right: 15px;
     text-align: right;
 }
@@ -242,11 +244,14 @@ article > section > aside {
 table {
     margin: 5px;
     width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
 }
 
 table td, table th{
     border: 1px solid #000;
     padding: 5px;
+    border-collapse: collapse;
 }
 
 table > thead {
@@ -256,6 +261,18 @@ table > thead {
 
 table tr {
     text-align: center;
+}
+
+table > tbody > tr > td > table {
+    margin: 0;
+}
+
+tr.order-header {
+    background-color: #d9d9d9;
+}
+
+section.orders > section {
+    width: 100%;
 }
 
 .error {
@@ -337,6 +354,10 @@ section.filters > section > section > input[type="number"] {
     padding-left: 10px;
 }
 
+section.filters > section:first-child > section > input[type="number"]:last-child {
+    margin-right: 40px;
+}
+
 section.filters > section:nth-child(2) > section > input[type="number"] {
     width: 120px;
     text-align: right;
@@ -403,6 +424,44 @@ aside.cart > h2 {
     margin-bottom: 10px;
 }
 
+.success {
+    background-color: green;
+}
+
+.warning {
+    background-color: yellow;
+}
+
+.error {
+    background-color: red;
+}
+
+section.notification-fixed {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 10px;
+    z-index: 2;
+}
+
+section.notification-fixed > section.notification {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.notification-popup-in {
+    animation-name: notification-popup-fade-in;
+    animation-duration: .3s;
+    animation-timing-function: ease-in;
+}
+
+.notification-popup-out {
+    animation-name: notification-popup-fade-out;
+    animation-duration: .3s;
+    animation-timing-function: ease-out;
+}
+
 @media screen and (min-width:768px) {
     aside.wallet, aside.cart {
         position: fixed;
@@ -413,12 +472,19 @@ aside.cart > h2 {
     }
 
     section.orders {
-        margin-right: 400px;
+        margin-right: 420px;
+    }
+    
+    section.seller-orders {
+        margin-right: 10px;
+    }
+
+    main > section {
+        flex-direction: row;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 }
-
-/*pagina venditore 
-Author: Lucas*/
 
 .addNewItem{
     text-align: center;
@@ -498,4 +564,12 @@ section.modal form{
     background-color: white;
     display: flex;
     gap: 14px;
+}
+
+section.insert form, section.update form {
+    gap: 5px;
+}
+
+textarea {
+    width: 100%;
 }

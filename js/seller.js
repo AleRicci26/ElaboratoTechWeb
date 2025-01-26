@@ -11,7 +11,7 @@ async function ShowSellerHomePage() {
         headers: {
             'Content-Type': 'application/json'
         }
-    }).then(res => res.json()).then(jsonRes => {
+    }).then(res => res.json()).then(async jsonRes => {
 
         //console.log(jsonRes.length)
         let theInnerProducts = ``
@@ -21,12 +21,13 @@ async function ShowSellerHomePage() {
             let theName = jsonRes[theColNum].Name
             let thePrice = jsonRes[theColNum].Price
             let theUID = jsonRes[theColNum].ProductId
+            let theStockQuantity = jsonRes[theColNum].StockQuantity
 
             theInnerProducts += `
                 <div class="product">
                     <div class="product_child-1">
                             <button class='product_editBtn' uid='${theUID}'>Edit</button>
-                        <h3>22</h3>
+                        <h3>Disponibilità: ${theStockQuantity}</h3>
                         <button>X</button>
                     </div>
                     <div class="product_child-2">
@@ -46,27 +47,45 @@ async function ShowSellerHomePage() {
             `
         }
 
+        const categorySelectHtml = await CraeteProductCategoriesSelectOptions();
+
         let theOuterContent = `
             <div class="theOuterDiv">            
                 <div class="addNewItem">
-                    <button>Add An Item</button>           
+                    <button>Aggiungi un prodotto</button>           
                 </div>                    
                 ${theInnerProducts}
-                <section class="modal">
+                <section class="modal insert">
                     <form>
-                        <input type="text" placeholder="Name" name="productName"/>
-                        <input type="text" placeholder="Price" name="productPrice"/>
+                        <label for="productName"></label>
+                        <input type="text" placeholder="Nome" name="productName"/>
+                        <label for="productPrice"></label>
+                        <input type="number" placeholder="Prezzo" name="productPrice" step=".01"/>
+                        <label for="productQuantity"></label>
+                        <input type="number" placeholder="Quantità" name="productQuantity"/>
+                        <label for="productShortDesc"></label>
+                        <input type="text" placeholder="Descrizione" name="productShortDesc"/>
+                        <label for="productLongDesc"></label>
+                        <textarea placeholder="Descrizione estesa" name="productLongDesc"></textarea>
+                        ${categorySelectHtml}
+                        <label for="productFile"></label>
                         <input type="file" placeholder="FileName" name="productFile"/>
-                        
-                        <input type="submit" value="Add Iten"/>
+                        <input type="submit" value="Aggiungi prodotto"/>
                     </form>
                 </section>
-                <section class="modal">
+                <section class="modal update">
                     <form>
-                        <input type="text" placeholder="Name" name="productName"/>
-                        <input type="text" placeholder="Price" name="productPrice"/>
-                        
-                        <input type="submit" value="Update"/>
+                        <label for="productName"></label>
+                        <input type="text" placeholder="Nome" name="productName"/>
+                        <label for="productPrice"></label>
+                        <input type="number" placeholder="Prezzo" name="productPrice" step=".01"/>
+                        <input type="number" placeholder="Quantità" name="productQuantity"/>
+                        <label for="productShortDesc"></label>
+                        <input type="text" placeholder="Descrizione" name="productShortDesc"/>
+                        <label for="productLongDesc"></label>
+                        <textarea placeholder="Descrizione estesa" name="productLongDesc"></textarea>
+                        ${categorySelectHtml}
+                        <input type="submit" value="Aggiorna prodotto"/>
                     </form>
                 </section>
             </div>`
@@ -95,6 +114,10 @@ async function ShowSellerHomePage() {
             let theProductName = document.querySelector('input[name=productName]').value
             let theProductPrice = document.querySelector('input[name=productPrice]').value
             let theProductFile = document.querySelector('input[name=productFile]').files[0]
+            let theQuantity = document.querySelector('input[name=productQuantity]').value
+            let theShortDesc = document.querySelector('input[name=productShortDesc]').value
+            let theLongDesc = document.querySelector('.insert > form > textarea').value
+            let theCategory = document.querySelector('.insert > form > label > select').value
 
             //instance of a form
             let theFormData = new FormData()
@@ -102,9 +125,13 @@ async function ShowSellerHomePage() {
             theFormData.append('name', theProductName)
             theFormData.append('price', theProductPrice)
             theFormData.append('file', theProductFile)
+            theFormData.append('category', theCategory)
+            theFormData.append('quantity', theQuantity)
+            theFormData.append('shortDesc', theShortDesc)
+            theFormData.append('longDesc', theLongDesc)
 
             //send form data to the API
-            let response = await fetch('./api-new-seller-item.php', {
+            let response = await fetch('api-new-seller-item.php', {
                 method: "POST",
                 body: theFormData
             })
@@ -122,7 +149,7 @@ async function ShowSellerHomePage() {
                 let UID = e.target.getAttribute('uid')
                 let theJSForm = new FormData()
                 theJSForm.append('ProductId', UID)
-                fetch('./api-product-Id.php', {
+                fetch('api-product-Id.php', {
                     method: "POST",
                     body: theJSForm
                 }).then(res => {
@@ -133,9 +160,19 @@ async function ShowSellerHomePage() {
                 }).then(res => {
                     let nameInupt = theSections[1].getElementsByTagName('input')[0]
                     let priceInput = theSections[1].getElementsByTagName('input')[1]
-                    let updateBtn = theSections[1].getElementsByTagName('input')[2]
+                    let theNewQuantity = theSections[1].getElementsByTagName('input')[2];
+                    let theNewShortDesc = theSections[1].getElementsByTagName('input')[3];
+                    let theNewLongDesc = theSections[1].getElementsByTagName('textarea')[0];
+                    let theNewCategory = theSections[1].getElementsByTagName('select')[0];
+                    let updateBtn = theSections[1].getElementsByTagName('input')[4];
+
                     nameInupt.value = res.Name
                     priceInput.value = res.Price
+                    theNewQuantity.value = res.StockQuantity
+                    theNewShortDesc.value = res.ShortDesc
+                    theNewLongDesc.value = res.LongDesc
+                    theNewCategory.value = res.Category
+
                     updateBtn.setAttribute('uid', res.ProductId)
                     theSections[1].classList.add('show')
                 })
@@ -144,29 +181,38 @@ async function ShowSellerHomePage() {
             })
         }
 
-        let theUpdateBtn = theSections[1].getElementsByTagName('input')[2]
+        let theUpdateBtn = theSections[1].getElementsByTagName('input')[4]
 
         theUpdateBtn.addEventListener('click', (e)=>{
             e.preventDefault()
             let theUID = e.target.getAttribute('uid')
             let theNewName = theSections[1].getElementsByTagName('input')[0].value
             let theNewPrice = theSections[1].getElementsByTagName('input')[1].value
+            let theNewQuantity = theSections[1].getElementsByTagName('input')[2].value;
+            let theNewShortDesc = theSections[1].getElementsByTagName('input')[3].value;
+            let theNewLongDesc = theSections[1].getElementsByTagName('textarea')[0].value;
+            let theNewCategory = theSections[1].getElementsByTagName('select')[0].value;
             
             let theJSForm = new FormData()
             theJSForm.append('ProductId', theUID )
             theJSForm.append('Name', theNewName )
             theJSForm.append('Price', theNewPrice)
+            theJSForm.append('category', theNewCategory)
+            theJSForm.append('quantity', theNewQuantity)
+            theJSForm.append('shortDesc', theNewShortDesc)
+            theJSForm.append('longDesc', theNewLongDesc)
 
-            fetch('./api-update-product.php', {
+            fetch('api-update-product.php', {
                 method: "POST",
                 body: theJSForm
             }).then(res => {
                 if(res.ok){
+                    ShowSellerHomePage()
                     return res.json()
                 }
-                return console.log('un able to update')
+                return console.log('unable to update')
             }).then(res => console.log(res))
-
+        
         })
     })
 }
@@ -235,6 +281,31 @@ async function ShowSellerFooter() {
     });
 }
 
+async function CraeteProductCategoriesSelectOptions() {
+    let optionsHtml = "";
+
+    const categories = await ExecutePostRequest("api-product-categories.php", new FormData(), async categories => {        
+        return categories;
+    }, error => console.log(error));
+
+    for (let i = 0; i < categories.length; i++) {
+        const category = categories[i];
+
+        optionsHtml += `
+            <option value="${category["CategoryId"]}"}>
+                ${category["Description"]}
+            </option>`;
+    }
+
+    return `
+        <label>
+            Categoria: 
+            <select name="select-product-category">
+                ${optionsHtml}
+            </select>
+        </label>`;
+}
+
 async function CreateChangeOrderStatusSelectOptions(selectId, statusId) {
     const formData = new FormData();
     formData.append("action", 4);
@@ -255,7 +326,8 @@ async function CreateChangeOrderStatusSelectOptions(selectId, statusId) {
     }
 
     return `
-        <label>Modifica stato dell'ordine<br/>
+        <label>
+            Stato: 
             <select name="change-order-status" id="${selectId}">
                 ${optionsHtml}
             </select>
@@ -280,6 +352,8 @@ async function GetAllUsersOrders() {
             await ExecutePostRequest("api-seller-orders.php", userFormData, async orders => {
                 for (let j = 0; j < orders.length; j++) {
                     const currentOrder = orders[j];
+                    const orderId = currentOrder["OrderId"];
+
                     let orderDetailsHtml = "";
         
                     const innerFormData = new FormData();
@@ -306,41 +380,55 @@ async function GetAllUsersOrders() {
         
                         ordersHtml += `
                             <table>
-                                <tr>
-                                    <td><strong>#${currentOrder["OrderId"]}</strong></td>
-                                    <td>${currentOrder["Description"]}</td>
-                                    <td>${optionsHtml}</td>
-                                </tr>
-                                <tr>
-                                    <table>
-                                        <thead>
-                                            <td>Riga</td>
-                                            <td>Prodotto</td>
-                                            <td>Quantita'</td>
-                                            <td>Prezzo Totale</td>
-                                        </thead>
-                                        ${orderDetailsHtml}
-                                    </table>
-                                </tr>
+                                <thead>
+                                    <tr class="order-header">
+                                        <th class="${OrderStatusToClass(currentOrder["Status"])}"></th>
+                                        <th>Ordine #${orderId}</th>
+                                        <th>${optionsHtml}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="3">
+                                            <table>
+                                                <thead>
+                                                    <th id="${orderId}-row">Riga</th>
+                                                    <th id="${orderId}-product">Prodotto</th>
+                                                    <th id="${orderId}-quantity">Quantita'</th>
+                                                    <th id="${orderId}-price">Prezzo Totale</th>
+                                                </thead>
+                                                <tbody>
+                                                    ${orderDetailsHtml}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>`;
                     }, orderDetailsError => console.log(orderDetailsError));
                 }
 
                 usersHtml += `
                     <table>
-                        <tr>
-                            <td><strong>#${currentUser["UserId"]}</strong></td>
-                            <td>${currentUser["Email"]}</td>
-                        </tr>
-                        <tr>
-                            ${ordersHtml}
-                        </tr>
+                        <thead>
+                            <tr>
+                                <td><strong>Utente: ${currentUser["UserId"]}</strong></td>
+                                <td>Mail: ${currentUser["Email"]}</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="2">
+                                    ${ordersHtml}
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>`;
             }, ordersError => console.log(ordersError));
         }
 
         const resultHtml = `
-            <section class="orders">
+            <section class="seller-orders">
                 <caption>Ordini utenti</caption>
                 <table>
                     ${usersHtml}
@@ -358,7 +446,16 @@ async function ChangeOrderStatus(orderId, statusId) {
     formData.append("StatusId", statusId);
 
     await ExecutePostRequest("api-seller-orders.php", formData, async res => {
-        console.log(res);
+        const select = document.querySelector(`#change-status-${orderId}`);
+        const orderHeader = FindClosestParentClassOfElement(select, "order-header");
+
+        const statusCell = orderHeader.children[0];
+
+        statusCell.classList.remove("success");
+        statusCell.classList.remove("warning");
+        statusCell.classList.remove("error");
+
+        statusCell.classList.add(OrderStatusToClass(statusId));
     }, error => console.log(error));
 }
 

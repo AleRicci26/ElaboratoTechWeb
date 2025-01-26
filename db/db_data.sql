@@ -22,7 +22,7 @@ INSERT INTO `products`
 VALUES
 ('Monopoly', 'Il classico Monopoly', 'Descrizione lunga di test', 29.99, 1, 4, 1, 10, 'Monopoly.jpg'),
 ('Exploding Kittens', 'Gioco di carte con gattini', 'Descrizione lunga di test', 19.99, 1, 8, 2, 20, 'Exploding Kittens.jpg'),
-('Cubo di Rubik', 'Il rompicapo più famoso', 'Descrizione lunga di test', 4.99, 1, 1, 2, 30, 'Cubo Rubik.png');
+('Cubo di Rubik', 'Il rompicapo più famoso', 'Descrizione lunga di test', 4.99, 1, 1, 3, 30, 'Cubo Rubik.png');
 
 INSERT INTO `notification_types`
 (`TypeId`, `Description`)
@@ -30,7 +30,8 @@ VALUES
 (1, 'Ordine effettuato'),
 (2, 'Ordine modificato'),
 (3, 'Prodotto esaurito'),
-(4, 'Disponibilità modificata');
+(4, 'Disponibilità modificata'),
+(5, 'Prodotto in esaurimento');
 
 INSERT INTO `notification_alert_types`
 (`AlertTypeId`, `Description`)

@@ -21,35 +21,24 @@ class DatabaseAPI {
         $result['success'] = false;
 
         if($stmt->num_rows == 1) { // se l'utente esiste
-            // verifichiamo che non sia disabilitato in seguito all'esecuzione di troppi tentativi di accesso errati.
-            if(false) { //checkbrute($user_id, $mysqli) == true) { 
-                // Account disabilitato
-                // Invia un e-mail all'utente avvisandolo che il suo account è stato disabilitato.
-                $result['success'] = false;
-            } else {
-                if($db_password == $password) { // Verifica che la password memorizzata nel database corrisponda alla password fornita dall'utente.
-                // Password corretta!            
-                    $user_browser = $_SERVER['HTTP_USER_AGENT']; // Recupero il parametro 'user-agent' relativo all'utente corrente.
-    
-                    $user_id = preg_replace("/[^0-9]+/", "", $user_id); // ci proteggiamo da un attacco XSS
-                    $_SESSION['user_id'] = $user_id; 
-                    // $email = preg_replace("/[^a-zA-Z0-9_\-]+/", "", $email); // ci proteggiamo da un attacco XSS
-                    $_SESSION['email'] = $e_mail;
-                    $_SESSION['login_string'] = hash('sha512', $password.$user_browser);
-                    // Login eseguito con successo.
+            if($db_password == $password) { // Verifica che la password memorizzata nel database corrisponda alla password fornita dall'utente.
+                // Password corretta     
+                $user_browser = $_SERVER['HTTP_USER_AGENT']; // Recupero il parametro 'user-agent' relativo all'utente corrente.
 
-                    $result["success"] = true;
-                    $result["role"] = $role;
+                // Protezione da attacco XSS
+                $user_id = preg_replace("/[^0-9]+/", "", $user_id);
+                $_SESSION['user_id'] = $user_id; 
+                $email = preg_replace("/[^a-zA-Z0-9_\-]+/", "", $email);
+                $_SESSION['email'] = $e_mail;
+                $_SESSION['login_string'] = hash('sha512', $password.$user_browser);
+                // Login eseguito con successo.
 
-                    return $result;    
-                } else {
-                    // Password incorretta.
-                    // Registriamo il tentativo fallito nel database.
-                    $now = time();
-                    // $mysqli->query("INSERT INTO login_attempts (user_id, time) VALUES ('$user_id', '$now')");
-                    return $result;
-                }
+                $result["success"] = true;
+                $result["role"] = $role;
+
+                return $result;    
             }
+            return $result;
         } else {
             $result["error"] = "userNotExists";
             // L'utente inserito non esiste.
@@ -197,15 +186,37 @@ class DatabaseAPI {
             $currentProduct = $cartProducts[$i];
             $rowNum = $i + 1;
 
+            $productId = $currentProduct['ProductId'];
             $price = $currentProduct['Price'];
             $quantity = $currentProduct['Quantity'];
 
             $totalPrice = $price * $quantity;
 
             $stmt = $this->db->prepare("INSERT INTO order_details (`Order`, `RowNum`, `Product`, `Quantity`, `TotalPrice`) VALUES (?,?,?,?,?)");
-            $stmt->bind_param('sssss', $orderId, $rowNum, $currentProduct["ProductId"], $quantity, $totalPrice);
+            $stmt->bind_param('sssss', $orderId, $rowNum, $productId, $quantity, $totalPrice);
             $stmt->execute();
             $stmt->close();
+            
+            // Gestione disponibilità prodotto in magazzino
+            $stmt = $this->db->prepare("UPDATE products SET StockQuantity = GREATEST(StockQuantity - ?, 0) WHERE ProductId = ?");
+            $stmt->bind_param('ss', $quantity, $productId);
+            $stmt->execute();
+            $stmt->close();
+
+            // Otteniamo la nuova quantità in magazzino
+            $stmt = $this->db->prepare("SELECT StockQuantity FROM products WHERE ProductId = ?");
+            $stmt->bind_param('s',$productId);
+            $stmt->execute();
+            $stmt->bind_result($newStockQuantity);
+            $stmt->fetch();
+            $stmt->close();
+
+            // Invio notifiche al venditore in caso di quantità bassa o pari a zero
+            if ($newStockQuantity == 0) {
+                $this->SendNotificationToSeller(3, "Prodotto [".$currentProduct["Name"]."] esaurito", 3);
+            } else if ($newStockQuantity <= 3) {
+                $this->SendNotificationToSeller(5, "Prodotto [".$currentProduct["Name"]."] in esaurimento", 2);
+            }
         }
 
         // Pulizia del carrello
@@ -216,7 +227,7 @@ class DatabaseAPI {
 
         // Notifica
         $message = "Acquisto effettuato di € ".$totalPrice." ordine #".$orderId;
-        $this->SendNotificationToCurrentUser(1, $message,);
+        $this->SendNotificationToCurrentUser(1, $message);
 
         return "ok";
     }
@@ -263,10 +274,10 @@ class DatabaseAPI {
     }
 
     //funzione venditore aggiungere un item
-    public function AddSellerItem($name, $price, $file) {
+    public function AddSellerItem($name, $price, $file, $category, $quantity, $shortDesc, $longDesc) {
         try {
-            $stmt = $this->db->prepare("INSERT INTO `products` (`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`) VALUES (?, 'Short description', 'Long description', ?, 1, 1, 1, 10, ?)");
-            $stmt->bind_param('sss', $name, $price, $file);
+            $stmt = $this->db->prepare("INSERT INTO `products` (`Name`, `ShortDesc`, `LongDesc`, `Price`, `PlayerNumFrom`, `PlayerNumTo`, `Category`, `StockQuantity`, `ImageName`) VALUES (?, ?, ?, ?, 1, 1, ?, ?, ?)");
+            $stmt->bind_param('sssssss', $name, $shortDesc, $longDesc, $price, $category, $quantity, $file);
             $stmt->execute();
 
             return ["success" => true, "message" => "Product added successfully"];
@@ -275,17 +286,17 @@ class DatabaseAPI {
         }
     } 
 
-    public function UpdateProduct($ProductId, $Name, $Price){
-        try{
-            $stmt = $this->db->prepare("UPDATE `products` SET `Name` = ?, `Price` = ? WHERE `products`.`ProductId` = ?");
-            $stmt->bind_param('sdd', $Name, $Price, $ProductId);
+    public function UpdateProduct($ProductId, $Name, $Price, $category, $quantity, $shortDesc, $longDesc){
+        // try{
+            $stmt = $this->db->prepare("UPDATE `products` SET `Name` = ?, `Price` = ?, `Category` = ?, `StockQuantity` = ?, `ShortDesc` = ?, `LongDesc` = ? WHERE `ProductId` = ?");
+            $stmt->bind_param('sssssss', $Name, $Price, $category, $quantity, $shortDesc, $longDesc, $ProductId);
             $stmt->execute();
 
             return ["success" => true, "message" => "Updated"];
 
-        } catch(Exception $e){
-            return ["success" => false, "message" => "Unable to Update the Product"];
-        }
+        // } catch(Exception $e){
+            // return ["success" => false, "message" => "Unable to Update the Product"];
+        // }
     }
 
     public function ChangeOrderStatus($orderId, $newStatus) {
@@ -390,6 +401,20 @@ class DatabaseAPI {
         return $this->SendNotificationToUser($_SESSION['user_id'], $type, $message, $alertType);
     }
 
+    public function SendNotificationToSeller($type, $message, $alertType = 1) {
+        $stmt = $this->db->prepare("SELECT UserId FROM users WHERE `Role` = 0 LIMIT 1");
+        $stmt->execute();
+        $stmt->bind_result($sellerUserId);
+        $stmt->fetch();
+        $stmt->close();
+
+        $stmt = $this->db->prepare("INSERT INTO notifications (`User`,`Type`,`AlertType`,`Description`) VALUES (?,?,?,?)");
+        $stmt->bind_param('ssss', $sellerUserId, $type, $alertType, $message);
+        $success = $stmt->execute();
+
+        return $success;
+    }
+
     public function GetUserNotifications() {
         $stmt = $this->db->prepare("SELECT n.NotificationId, n.Description AS `Message`, n.Viewed, n.CreationDateTime, nt.TypeId, nt.Description AS TypeDesc, nat.AlertTypeId, nat.Description AS AlertTypeDesc FROM notifications AS n INNER JOIN notification_types AS nt ON n.Type = nt.TypeId INNER JOIN notification_alert_types AS nat ON n.AlertType = nat.AlertTypeId WHERE n.User = ? ORDER BY n.Viewed ASC, n.CreationDateTime DESC");
         $stmt->bind_param('s', $_SESSION['user_id']);
@@ -439,6 +464,13 @@ class DatabaseAPI {
 
     public function GetAllOrderStatus() {
         $stmt = $this->db->prepare("SELECT StatusId, Description FROM order_status");
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function GetAllProductCategories() {
+        $stmt = $this->db->prepare("SELECT CategoryId, Description FROM product_categories");
         $stmt->execute();
 
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

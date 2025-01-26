@@ -47,3 +47,25 @@
         transform: scale(100%);
     }
 }
+
+@keyframes notification-popup-fade-in {
+    0% {
+        top: 0;
+        opacity: 0;
+    }
+    100% {
+        top: 10px;
+        opacity: 1;
+    }
+}
+
+@keyframes notification-popup-fade-out {
+    0% {
+        top: 10px;
+        opacity: 1;
+    }
+    100% {
+        top: 0;
+        opacity: 0;
+    }
+}

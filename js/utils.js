@@ -3,6 +3,8 @@ EVENT_INPUT = "input";
 EVENT_CHANGE = "change";
 
 NOTIFICATION_POLL_INTERVAL = 2000;
+NOTIFICATION_ALERT_TIMEOUT = 4000;
+NOTIFICATION_ALERT_ANIMATION_DURATION = 300;
 
 let cartProducts;
 let selectedProductId;
@@ -36,6 +38,13 @@ function FindClosestParentClassOfEventArgs(eventArgs, className) {
     return element.closest(`.${className}`);
 }
 
+function FindClosestParentClassOfElement(element, className) {
+    if (element.classList.contains(className.toLowerCase())) {
+        return element;
+    }
+    return element.closest(`.${className}`);
+}
+
 function ElementIdToDbId(elementId) {
     let strings = elementId.split('-');
     return strings[strings.length - 1];
@@ -59,7 +68,10 @@ async function ExecutePostRequest(url, formData, onSuccess, onError) {
 }
 
 function GetCurretDateTime() {
-    const date = new Date(Date.now());
+    const timeOffset = 2;
+    let date = new Date(Date.now());
+
+    date.setSeconds(date.getSeconds() - timeOffset);
 
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

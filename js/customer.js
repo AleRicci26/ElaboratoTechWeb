@@ -107,7 +107,7 @@ async function ShowUserHomePage() {
 
 function CreateProduct(product) {
     return `
-        <article id="prod-${product["ProductId"]}">
+        <article id="prod-${product["ProductId"]}" class="product">
             <header>
                 <h2>${product["Name"]}</h2>
             </header>
@@ -117,10 +117,10 @@ function CreateProduct(product) {
                     <figcaption></figcaption>
                 </figure>
                 <aside>
-                    <h2>${product["Price"]} €</h2>
+                    <h3>${product["Price"]} €</h3>
                     <section>
                         <figure>${iconPlayers}</figure>
-                        <h2>${product["PlayerNumFrom"]}-${product["PlayerNumTo"]}</h2>
+                        <h3>${product["PlayerNumFrom"]}-${product["PlayerNumTo"]}</h3>
                     </section>
                 </aside>
             </section>
@@ -203,7 +203,7 @@ async function ShowCartProducts() {
 
         for (let i = 0; i < cartProducts.length; i++) {
             articles += `
-                <article id="cart-prod-${cartProducts[i]["ProductId"]}">
+                <article id="cart-prod-${cartProducts[i]["ProductId"]}" class="product">
                     <header>
                         <h2>${cartProducts[i]["Name"]}</h2>
                     </header>
@@ -228,7 +228,6 @@ async function ShowCartProducts() {
                         </section>
                     </footer>
                 </article>`;
-                // TEST
         }
 
         main.innerHTML = `
@@ -303,8 +302,9 @@ async function CheckoutCart() {
     const formData = new FormData();
     formData.append("action", 4);
 
-    await ExecutePostRequest("api-cart.php", formData, result => {
-        console.log(result);
+    await ExecutePostRequest("api-cart.php", formData, async result => {
+        await StopUserNotificationsPoll();
+        await StartUserNotificationsPoll();
         ShowCartPage();
     }, error => console.log(error));
 
@@ -318,7 +318,7 @@ async function ShowProductDetails() {
 
     await ExecutePostRequest("api-product-details.php", formData, result => {
         document.querySelector("main").innerHTML = `
-            <article>
+            <article class="product">
                 <header>
                     <h2>${result["Name"]}</h2>
                 </header>
@@ -399,10 +399,12 @@ async function ShowSearchPageControls() {
     document.querySelector(`.filters > section:nth-child(2) > section > input[type="number"]`).addEventListener(EVENT_INPUT, e => {
         ShowSearchPageResults();
     });
+
+    ShowSearchPageResults();
 }
 
 async function ShowSearchPageResults() {
-    const textFilter = document.querySelector(`input[type="search"]`).value;
+    const textFilter = document.querySelector(`input[type="search"]`).value == "" ? "%" : document.querySelector(`input[type="search"]`).value;
     const playerFrom = document.querySelector(`.filters > section:nth-child(1) > section > input[type="number"]:nth-child(2)`).value || 0;
     const playerTo = document.querySelector(`.filters > section:nth-child(1) > section > input[type="number"]:nth-child(4)`).value || Number.MAX_VALUE;
     const maxPrice = document.querySelector(`.filters > section:nth-child(2) > section > input[type="number"]`).value || Number.MAX_VALUE;
@@ -512,6 +514,13 @@ async function WithdrawUserWallet($money) {
     }, error => console.log(error));
 }
 
+function OrderStatusToClass(orderStatus) {
+    if (orderStatus == 3) {
+        return "error";
+    }
+    return "success";
+}
+
 async function ShowUserOrders() {
     const formData = new FormData();
     formData.append("action", 1);
@@ -521,6 +530,8 @@ async function ShowUserOrders() {
 
         for (let i = 0; i < orders.length; i++) {
             const currentOrder = orders[i];
+            const orderId = currentOrder["OrderId"];
+            
             let orderDetailsHtml = "";
 
             const innerFormData = new FormData();
@@ -533,30 +544,39 @@ async function ShowUserOrders() {
 
                     orderDetailsHtml += `
                         <tr>
-                            <td>${currentOrderDetail["RowNum"]}</td>
-                            <td>${currentOrderDetail["Name"]}</td>
-                            <td>${currentOrderDetail["Quantity"]}</td>
-                            <td>${currentOrderDetail["TotalPrice"]} €</td>
+                            <td headers="${orderId}-row">${currentOrderDetail["RowNum"]}</td>
+                            <td headers="${orderId}-product">${currentOrderDetail["Name"]}</td>
+                            <td headers="${orderId}-quantity">${currentOrderDetail["Quantity"]}</td>
+                            <td headers="${orderId}-price">${currentOrderDetail["TotalPrice"]} €</td>
                         </tr>`;
                 }
 
                 ordersHtml += `
                     <table>
-                        <tr>
-                            <td><strong>#${currentOrder["OrderId"]}</strong></td>
-                            <td>${currentOrder["Description"]}</td>
-                        </tr>
-                        <tr>
-                            <table>
-                                <thead>
-                                    <td>Riga</td>
-                                    <td>Prodotto</td>
-                                    <td>Quantita'</td>
-                                    <td>Prezzo Totale</td>
-                                </thead>
-                                ${orderDetailsHtml}
-                            </table>
-                        </tr>
+                        <thead>
+                            <tr class="order-header">
+                                <th class="${OrderStatusToClass(currentOrder["Status"])}"></th>
+                                <th>Ordine #${orderId}</th>
+                                <th>Stato: ${currentOrder["Description"]}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3">
+                                    <table>
+                                        <thead>
+                                            <th id="${orderId}-row">Riga</th>
+                                            <th id="${orderId}-product">Prodotto</th>
+                                            <th id="${orderId}-quantity">Quantita'</th>
+                                            <th id="${orderId}-price">Prezzo Totale</th>
+                                        </thead>
+                                        <tbody>
+                                            ${orderDetailsHtml}
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>`;
             }, innerError => console.log(innerError));
         }
@@ -564,9 +584,9 @@ async function ShowUserOrders() {
         const resultHtml = `
             <section class="orders">
                 <caption>I tuoi ordini</caption>
-                <table>
+                <section>
                     ${ordersHtml}
-                </table>
+                </section>
             </section>`;
 
         return resultHtml;
@@ -697,15 +717,41 @@ async function PollUserNotifications() {
     prevUserNotificationPollDateTime = GetCurretDateTime();
 
     await ExecutePostRequest("api-notifications.php", formData, async notifications => {
-        // console.log(notifications);
-        if (notifications.length > 0) {
-            alert(notifications[0]["Message"]);
-        }
+        console.log(notifications);
+        if (notifications.length == 0) return;
+
+        const notification = notifications[0];
+
+        let notificationElement = document.createElement("section");
+        notificationElement.classList.add("notification-fixed");
+        notificationElement.classList.add("notification-popup-in")
+
+        notificationElement.innerHTML = `
+            <section class="notification">
+                <section>
+                    <h2>${notification["TypeDesc"]}</h2>
+                    <h3>${notification["Message"]}</h3>
+                </section>
+            </section>`;
+
+        document.querySelector("body").appendChild(notificationElement);
+
+        setTimeout(() => {
+            notificationElement.classList.remove("notification-popup-in");
+            notificationElement.classList.add("notification-popup-out");
+
+            setTimeout(() => {
+                document.querySelector("body").removeChild(notificationElement);
+            }, NOTIFICATION_ALERT_ANIMATION_DURATION - 10);
+        }, NOTIFICATION_ALERT_TIMEOUT);
     }, error => console.log(error));
 }
 
 async function StartUserNotificationsPoll() {
+    clearInterval(userNotificationPoll);
     userNotificationPoll = setInterval(PollUserNotifications, NOTIFICATION_POLL_INTERVAL);
+
+    // PollUserNotifications();
 }
 
 async function StopUserNotificationsPoll() {
